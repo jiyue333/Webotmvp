@@ -366,100 +366,130 @@ erDiagram
 
 ## 6. 里程碑与计划（Plan）
 
-### 6.1 分阶段计划（6 周，前后端并行）
+### 6.1 重构后的执行原则（降低风险优先）
+- 里程碑采用“TODO 驱动 + 阶段出口门禁（Exit Criteria）”。
+- 单阶段只解决一个主要风险域，控制后端增量在约 `800-1200` 行（M1/M8 允许更低）。
+- 每阶段都必须明确“本阶段不做什么”，避免范围漂移。
+- 统计口径：按后端目录增量统计（建议 `git diff --numstat` 或 `cloc`），不计自动生成文件与纯文档改动。
 
-> 采用垂直切片策略，每周交付可演示的功能切片，前后端同步推进。
+### 6.2 TODO 规范（先统一，再执行）
+- TODO 命名：`[TAG][P1|P2|P3][状态] 描述`，示例：`[auth][P1][todo] 实现 refresh token 轮换`。
+- TAG 集合：`arch/auth/model/kb/knowledge/session/message/chat/sse/ingest/worker/retrieval/rerank/graph/obs/test/ops`。
+- 状态集合：`todo/in_progress/blocked/done/deferred`。
+- 每条 TODO 必须包含：完成条件、验证方式、归属模块（目录 + 文件）。
+- 通过门禁：阶段内 `P1` TODO 必须全部 `done`，`P2/P3` 允许有 `deferred`，但需记录原因。
 
-#### Week 1: 基础骨架与用户体系
+### 6.3 阶段划分（按每阶段约 1000 行后端增量控制）
 
-| 端 | 交付 |
-|---|---|
-| **后端** | 分层架构骨架、JWT 鉴权 (5 API)、KB CRUD (5 API)、Alembic 迁移、Docker Compose |
-| **前端** | Vue 3 + Vite + TS 骨架、路由/状态管理、HTTP 封装、登录/注册页面 |
-| **集成** | 前端可调用 Auth API、Token 自动刷新 |
+| 阶段 | 名称 | 后端代码增量预算 | 关闭的 TODO 范围 | 阶段目标 |
+|------|------|------------------|------------------|----------|
+| M1 | 架构与文件骨架基线 | 500-900 行 | `arch/*` | 搭建完整骨架、注释规则、目录 README、最小可运行基线 |
+| M2 | 用户与鉴权 | 700-1100 行 | `auth/*` | 完成注册登录刷新登出与鉴权中间件闭环 |
+| M3 | 模型与知识管理 | 700-1100 行 | `model/*` `kb/*` `knowledge/*` | 完成模型与知识管理主链路（先元数据闭环） |
+| M4 | 会话与基础对话 | 700-1100 行 | `session/*` `message/*` `chat/*` `sse/*` | 完成会话消息与基础流式对话（不接检索） |
+| M5 | 知识上传与异步入库 | 800-1200 行 | `ingest/*` `worker/*` | 完成解析/OCR/分块/向量化/状态机 |
+| M6 | 检索与重排 | 800-1200 行 | `retrieval/*` `rerank/*` | 完成混合检索、重排、引用回传（先不启图谱） |
+| M7 | 图谱增强与 Pipeline 合流 | 700-1100 行 | `graph/*` | 完成实体抽取 + 图检索增强并接入对话链路 |
+| M8 | 可观测性与收尾 | 500-900 行 | `obs/*` `test/*` `ops/*` | 完成日志/指标/追踪/回归测试/runbook |
 
-#### Week 2: 模型管理 + 知识导入基础
+### 6.4 各阶段任务具体描述（对标 WeKnora 原项目）
 
-| 端 | 交付 |
-|---|---|
-| **后端** | Model Provider 列表、Model CRUD (6 API)、Knowledge 导入 API (file/url/manual)、Redis Queue、Worker 骨架 |
-| **前端** | 知识库列表/详情页、模型管理页、知识导入表单 |
-| **集成** | 可创建模型、可上传文件并看到 pending 状态 |
+#### M1 架构与文件骨架基线（结构对齐阶段）
+- 对齐来源：`internal/router/router.go`、`internal/container/container.go`、`migrations/paradedb/00-init-db.sql`。
+- 关键任务：
+  - 建立 Router/Handler/Service/Repository/Infra 分层骨架与依赖注入结构。
+  - 创建后端与前端所需文件骨架；每个代码文件顶部写中文职责、边界、TODO。
+  - 复杂目录补 `README.md`（例如 `agent/`、`pipeline/`、`worker/`），写清编排流程与设计原则。
+  - 建立最小运行链路：`docker compose up`、`/health`、基础 CI。
+- 本阶段不做：业务逻辑完整实现、复杂检索与图谱能力。
+- Exit Criteria：仓库“可运行 + 可读 + 可迭代”，并完成 TODO 规范落地。
 
-#### Week 3: 文档解析 + 向量化
+#### M2 用户与鉴权（能力闭环阶段）
+- 对齐来源：`RegisterAuthRoutes`、`internal/handler/auth.go`、`users/auth_tokens` 数据域。
+- 关键任务：
+  - 实现 `/auth/register` `/auth/login` `/auth/refresh` `/auth/logout` `/auth/me`。
+  - 实现 token 持久化、刷新与撤销、鉴权中间件与统一错误码。
+- 本阶段不做：`/auth/validate`、`/auth/change-password`（除非后续明确纳入范围）。
+- Exit Criteria：auth smoke 全通过（注册→登录→me→刷新→登出→旧 token 失效）。
 
-| 端 | 交付 |
-|---|---|
-| **后端** | DocReader 内嵌实现 (PDF/DOCX/TXT/MD)、OCR 集成（可选）、Chunking 分块、Embedding 向量化、pgvector 存储 |
-| **前端** | 知识详情页（解析状态、chunk 预览）、解析进度展示 |
-| **集成** | 文件上传 → 解析 → 分块 → 向量化 全流程可验证 |
+#### M3 模型与知识管理（管理面完善阶段）
+- 对齐来源：`docs/api/model.md`、`docs/api/knowledge-base.md`、`docs/api/knowledge.md`。
+- 关键任务：
+  - 完成 provider 列表与模型 CRUD（保持 provider/type 语义与 WeKnora 对齐）。
+  - 完成知识库 CRUD 与知识 `file/url/manual` 入口、列表、详情、更新、删除。
+  - 先完成“元数据与状态骨架”；`parse_status` 统一规范为 `pending/processing/completed/failed`（如有 `unprocessed` 需在迁移时映射）。
+- 本阶段不做：FAQ、KB copy、批量高级运维接口。
+- Exit Criteria：模型配置、建库、建知识记录可在前端闭环。
 
-#### Week 4: 检索 + 知识图谱 + 会话
+#### M4 会话与基础对话（交互链路打通阶段）
+- 对齐来源：`docs/api/session.md`、`docs/api/message.md`、`docs/api/chat.md`、`internal/handler/session/stream.go`。
+- 关键任务：
+  - 完成 Session CRUD、Message load/delete。
+  - 完成基础 `/knowledge-chat/{session_id}` SSE（纯模型对话，不接检索）。
+  - 完成 `/sessions/{session_id}/stop` 与 `/sessions/continue-stream/{session_id}`（历史回放 + 增量轮询 + stop 事件）。
+- 本阶段不做：Agent chat、图谱增强、复杂检索。
+- Exit Criteria：E2E 可走通“登录→建会话→流式回答→停止→续流”。
 
-| 端 | 交付 |
-|---|---|
-| **后端** | 混合检索（pgvector + pg_search BM25 + Rerank）、实体/关系抽取、Neo4j 存储与检索、Session/Message CRUD |
-| **前端** | 会话列表页、对话界面骨架（非 SSE） |
-| **集成** | `/knowledge-search` 返回检索结果、Neo4j 可查询 |
+#### M5 知识上传与异步入库（ingest 主链路阶段）
+- 对齐来源：`internal/router/task.go`、`internal/application/service/knowledge.go`、`docreader/*`。
+- 关键任务：
+  - 建立 Redis Queue + Worker；消费文档处理任务并维护状态机。
+  - 完成解析/OCR/分块/向量化入库，落到 `chunks/embeddings`。
+  - 打通失败重试与错误回写，保证任务可观测。
+- 本阶段不做：图谱检索增强（仅可预留抽取接口）。
+- Exit Criteria：上传后可稳定完成入库，失败原因可追踪。
 
-#### Week 5: SSE 对话 + 前端完善
+#### M6 检索与重排（RAG 基础增强阶段）
+- 对齐来源：`chat_pipline/search.go`、`rerank.go`、`merge.go`、`filter_top_k.go`、`into_chat_message.go`。
+- 关键任务：
+  - 完成 pgvector + pg_search 混合检索与重排。
+  - 接入 merge/top-k/prompt 组装，SSE 返回引用（references + answer）。
+  - 与 M4 的基础 chat 合流为可检索 chat。
+- 本阶段不做：实体抽取和图检索增强（推迟到 M7）。
+- Exit Criteria：对话可引用已入库内容，且召回与重排可观测。
 
-| 端 | 交付 |
-|---|---|
-| **后端** | Chat Pipeline 完整实现、SSE 流式输出、continue-stream/stop、引用返回 |
-| **前端** | SSE 对话实现、流式消息渲染、引用卡片、继续/停止按钮 |
-| **集成** | 完整对话流程 E2E、引用正确展示、可中断对话 |
+#### M7 图谱增强与 Pipeline 合流（Graph RAG 阶段）
+- 对齐来源：`extract_entity.go`、`search_entity.go`、`retriever/neo4j/repository.go`、`docs/KnowledgeGraph.md`。
+- 关键任务：
+  - 在 `NEO4J_ENABLE=true` 且 KB 开启抽取时，执行实体抽取、图写入与图检索。
+  - 将图检索结果并入检索结果集，保持引用结构一致。
+  - 加入开关与降级路径（图谱失败不阻塞主对话）。
+- 本阶段不做：Agent/ReAct、MCP。
+- Exit Criteria：图谱开启时可提升对话上下文；图谱关闭时主链路不受影响。
 
-#### Week 6: 生产化收口
+#### M8 可观测性与收尾（生产可维护阶段）
+- 对齐来源：`middleware/logger.go`、`middleware/trace.go`、`docs/QA.md`、`docs/开发指南.md`。
+- 关键任务：
+  - 补齐结构化日志、Prometheus 指标、OpenTelemetry 链路追踪。
+  - 补齐 smoke/regression，覆盖登录、上传、检索、对话、stop/continue。
+  - 完善 runbook（启动、排障、Neo4j 验证、回滚策略）。
+- 本阶段不做：新业务功能扩展。
+- Exit Criteria：核心链路可监控、可回归、可排障。
 
-| 端 | 交付 |
-|---|---|
-| **后端** | 可观测性（日志/指标/追踪）、错误处理优化、限流（可选）、API 文档 |
-| **前端** | UI/UX 优化、响应式适配、错误提示优化 |
-| **质量** | pytest 覆盖率 > 80%、E2E 测试、故障演练 |
-| **文档** | 部署文档、API 文档、运维手册 |
+### 6.5 依赖关系与并行策略
+```
+M1 → M2 → M3
+M3 → M4
+M3 → M5
+M4 + M5 → M6 → M7 → M8
+```
 
-### 6.2 里程碑检查点
+### 6.6 迭代调整机制（M1 后允许演进）
+- M1 完成后，文件规划与模块边界允许在 M2-M8 按实际开发情况调整，不要求一次性完美。
+- 任何结构调整都需要同步更新目录 `README.md` 与文件头中文注释/TODO，保持文档与代码一致。
+- 若调整影响 TODO 归属，必须在同一阶段完成 TODO 迁移，避免遗留“无人负责”项。
+- “无归属文件”定义：文件未归属明确模块目录，或缺少文件头职责/TODO，或未在目录 README 记录。
+- M1 后允许新增文件，但必须满足“模块归属 + 文件头注释 + README 记录”。
 
-| 里程碑 | 周 | 验收标准 |
-|---|---|---|
-| M1 | Week 1 | 前端登录 → 获取用户信息 |
-| M2 | Week 2 | 上传文件 → 任务入队 |
-| M3 | Week 3 | 向量写入 → 检索返回结果 |
-| M4 | Week 4 | 实体抽取 → Neo4j 可视化 |
-| M5 | Week 5 | SSE 流式问答 + 引用 |
-| M6 | Week 6 | E2E 测试通过 + 文档齐全 |
-
-### 6.3 每阶段交付要求
-
-- **代码**：功能可运行、可回归
-- **测试**：新增功能有单元测试
-- **文档**：接口/配置/运维手册同步更新
-- **集成**：前后端联调验收通过
-
-### 6.4 风险清单与缓解
-
-| 风险 | 影响 | 概率 | 缓解 |
-|---|---|---|---|
-| OCR 集成复杂 | Week 3 延期 | 中 | 首版可选跳过 OCR |
-| 图谱抽取质量差 | Week 4 延期 | 中 | 设置开关，可仅用向量检索 |
-| SSE 前端实现难 | Week 5 延期 | 低 | 参考成熟库 (EventSource) |
-| 模型 API 不稳定 | 对话失败 | 中 | 超时 + 重试 + fallback |
-| 前后端进度不匹配 | 集成困难 | 中 | 每周联调验收 |
-| Redis 队列堆积 | 导入延迟 | 低 | 控制 worker 并发、指数退避 |
-
-### 6.5 前端技术栈
-
-| 类别 | 选型 |
-|---|---|
-| 框架 | Vue 3 |
-| 构建 | Vite |
-| 语言 | TypeScript |
-| 路由 | vue-router |
-| 状态 | Pinia |
-| HTTP | axios |
-| UI | TailwindCSS / Element Plus |
-| SSE | EventSource API |
+### 6.7 风险与缓解
+| 风险 | 缓解措施 |
+|------|----------|
+| M1 骨架规划与后续实现不完全匹配 | 在 M2+ 小步重构，并同步更新 README/TODO |
+| 单阶段代码量超预算（>1200 行） | 立即拆分 TODO 并顺延，禁止临时扩大阶段范围 |
+| `parse_status` 历史枚举不一致（`unprocessed` vs `pending`） | 在迁移脚本统一映射，接口层只暴露统一枚举 |
+| OCR 方案选型耗时 | M5 初期允许仅文本解析，OCR 作为同阶段可选增量 |
+| 图谱抽取效果不稳定 | M7 必须提供开关与降级路径，默认不阻塞主链路 |
+| stop/continue 流控边界复杂 | 先按 M4 完成事件回放与 offset 轮询，再在 M8 增加回归测试固化 |
 
 ---
 
