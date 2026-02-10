@@ -1,18 +1,30 @@
-/**
- * 文件职责：封装 `knowledgeBase` 前端 API 调用，隔离页面与 HTTP 实现细节。
- * 边界：只封装 HTTP 请求与响应解析；上游由 store/view 调用，下游对接后端 API，不管理页面状态。
- * TODO：
- * - [knowledge][P1][todo] 完成条件：补齐知识条目管理与状态流转约束；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/knowledgeBase.ts`。
- */
+// 文件职责：定义知识库管理相关的 HTTP 接口（CRUD）。
+// 边界：仅定义接口签名与类型；不包含状态管理逻辑。
 
-import http from './http'
-import type { ApiResponse, KnowledgeBaseItem } from '../types/api'
+import type { KnowledgeBaseItem } from '../types/api'
 
-/**
- * 拉取知识库列表。
- * 当前默认返回空数组兜底，避免页面层处理 null/undefined。
- */
-export async function listKnowledgeBases(): Promise<KnowledgeBaseItem[]> {
-  const { data } = await http.get<ApiResponse<KnowledgeBaseItem[]>>('/knowledge-bases')
-  return data.data ?? []
+export function listKnowledgeBases(): Promise<KnowledgeBaseItem[]> {
+  throw new Error('Not implemented')
 }
+
+export function getKnowledgeBase(_id: string): Promise<KnowledgeBaseItem> {
+  throw new Error('Not implemented')
+}
+
+export function createKnowledgeBase(_data: any): Promise<KnowledgeBaseItem> {
+  throw new Error('Not implemented')
+}
+
+export function updateKnowledgeBase(_id: string, _data: any): Promise<KnowledgeBaseItem> {
+  throw new Error('Not implemented')
+}
+
+export function deleteKnowledgeBase(_id: string): Promise<void> {
+  throw new Error('Not implemented')
+}
+
+// TODO(M3)：实现 listKnowledgeBases，GET /api/v1/knowledge-bases，支持 page/page_size 分页。
+// TODO(M3)：实现 getKnowledgeBase，GET /api/v1/knowledge-bases/{id}，返回 KB 对象。
+// TODO(M3)：实现 createKnowledgeBase，POST /api/v1/knowledge-bases，接收 name/description/embedding_model_id/chunking_config。
+// TODO(M3)：实现 updateKnowledgeBase，PUT /api/v1/knowledge-bases/{id}，可选字段更新。
+// TODO(M3)：实现 deleteKnowledgeBase，DELETE /api/v1/knowledge-bases/{id}，级联删除关联知识/标签。

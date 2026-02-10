@@ -1,0 +1,1 @@
+import{d as a,c as n,a as o,o as t}from"./index-CHKryHS-.js";const s={class:"model-manage-view"},r=a({name:"ModelManageView",__name:"ModelManageView",setup(l){return(d,e)=>(t(),n("div",s,[...e[0]||(e[0]=[o("h1",null,"Model Management",-1)])]))}});export{r as default};

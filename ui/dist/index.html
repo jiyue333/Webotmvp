@@ -1,0 +1,20 @@
+<!--
+文件职责：维护前端 HTML 宿主入口，承接应用挂载节点与静态元信息。
+边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
+TODO：
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/index.html`。
+-->
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WeKnora MVP</title>
+    <script type="module" crossorigin src="/assets/index-CHKryHS-.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BsFrHQpu.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

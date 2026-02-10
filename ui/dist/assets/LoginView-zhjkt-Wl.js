@@ -1,0 +1,1 @@
+import{d as o,c as n,a,o as s}from"./index-CHKryHS-.js";const t={class:"login-view"},l=o({name:"LoginView",__name:"LoginView",setup(i){return(r,e)=>(s(),n("div",t,[...e[0]||(e[0]=[a("h1",null,"WeKnora Login",-1)])]))}});export{l as default};

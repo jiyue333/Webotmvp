@@ -1,9 +1,5 @@
-"""
-文件职责：装配 FastAPI 应用生命周期与路由入口，提供服务启动主入口。
-边界：只负责应用装配与生命周期管理；上游由进程启动调用，下游注入 router/container，不承载领域实现。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/main.py`。
-"""
+# 文件职责：装配 FastAPI 应用生命周期与路由入口，提供服务启动主入口。
+# 边界：只负责应用装配与生命周期管理，上游由进程启动调用，下游注入 router/container，不承载领域实现。
 
 from __future__ import annotations
 

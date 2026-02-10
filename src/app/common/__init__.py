@@ -1,7 +1,4 @@
-"""
-文件职责：维护包级导出入口，约束子模块对外暴露符号。
-边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/common/__init__.py`。
-"""
+# 文件职责：common 包入口；统一导出公共符号，供上层模块 `from app.common import ...` 使用。
+# 边界：仅做 re-export，不包含实现逻辑；不依赖项目内其他模块。
 
+# TODO(M2)：当 config.py / constants.py / response.py 完成后，在此补充对应的 re-export。

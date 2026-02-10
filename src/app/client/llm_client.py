@@ -1,7 +1,10 @@
-"""
-文件职责：封装 `llm_client` 外部模型调用入口，统一请求参数与错误处理约束。
-边界：只封装外部模型请求；上游由 service 调用，下游对接第三方模型服务，不保存业务数据。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/client/llm_client.py`。
-"""
+# 文件职责：封装 LLM（Chat 模型）的调用客户端，提供流式与非流式对话能力。
+# 边界：仅负责 HTTP 请求发送与响应解析；不编排业务流程，不读写数据库。模型配置由调用方传入。
+# 对齐来源：WeKnora internal/models/chat/chat.go（Chat 接口 + NewChat 工厂）。
 
+# TODO(M4)：定义 LLMClient Protocol（继承 BaseModelClient），包含：
+#   - async chat(messages: list[ChatMessage], *, temperature, max_tokens) -> ChatResponse
+#   - async chat_stream(messages: list[ChatMessage], *, temperature, max_tokens) -> AsyncIterator[StreamChunk]
+# TODO(M4)：实现 OpenAICompatibleLLMClient 类，对接 OpenAI 兼容 API（覆盖大部分 source）。入参 ModelClientConfig，使用 httpx.AsyncClient。
+# TODO(M4)：实现 chat_stream 的 SSE 解析逻辑，逐 token 返回 StreamChunk。对齐 WeKnora internal/models/chat/sse_reader.go。
+# TODO(M7)：如需图谱实体抽取调用 LLM，在此文件中不新增逻辑，由 service 层复用 chat 接口。

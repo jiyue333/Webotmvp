@@ -1,0 +1,1 @@
+import{d as a,c as o,a as s,o as r}from"./index-CHKryHS-.js";const t={class:"dashboard-view"},i=a({name:"DashboardView",__name:"DashboardView",setup(n){return(d,e)=>(r(),o("div",t,[...e[0]||(e[0]=[s("h1",null,"Dashboard",-1)])]))}});export{i as default};

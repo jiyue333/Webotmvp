@@ -1,7 +1,8 @@
-"""
-文件职责：封装 `rerank_client` 外部模型调用入口，统一请求参数与错误处理约束。
-边界：只封装外部模型请求；上游由 service 调用，下游对接第三方模型服务，不保存业务数据。
-TODO：
-- [rerank][P2][todo] 完成条件：补齐重排调用与结果融合规则；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/client/rerank_client.py`。
-"""
+# 文件职责：封装 Rerank 模型的调用客户端，提供文档重排打分能力。
+# 边界：仅负责 HTTP 请求发送与响应解析；不编排业务流程，不读写数据库。模型配置由调用方传入。
+# 对齐来源：WeKnora internal/models/rerank/reranker.go（Reranker 接口 + NewReranker 工厂）。
 
+# TODO(M6)：定义 RerankClient Protocol（继承 BaseModelClient），包含：
+#   - async rerank(query: str, documents: list[str], *, top_n: int | None) -> list[RankResult]
+# TODO(M6)：实现 OpenAICompatibleRerankClient 类，对接 Jina/Cohere 等兼容 Rerank API。入参 ModelClientConfig，使用 httpx.AsyncClient。
+# TODO(M6)：处理 relevance_score vs score 字段兼容（不同 source 返回字段名不同）。对齐 WeKnora RankResult.UnmarshalJSON。

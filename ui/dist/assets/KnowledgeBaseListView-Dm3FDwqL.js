@@ -1,0 +1,1 @@
+import{d as s,c as o,a as t,o as a}from"./index-CHKryHS-.js";const n={class:"kb-list-view"},d=s({name:"KnowledgeBaseListView",__name:"KnowledgeBaseListView",setup(i){return(l,e)=>(a(),o("div",n,[...e[0]||(e[0]=[t("h1",null,"Knowledge Bases",-1)])]))}});export{d as default};

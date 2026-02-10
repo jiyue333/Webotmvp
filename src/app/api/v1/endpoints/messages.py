@@ -1,7 +1,8 @@
-"""
-文件职责：定义 `messages` 领域接口的协议入口与参数边界。
-边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
-TODO：
-- [message][P1][todo] 完成条件：补齐消息加载与持久化约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/v1/endpoints/messages.py`。
-"""
+# 文件职责：定义消息管理相关的 HTTP 路由（消息历史加载）。
+# 边界：仅处理请求参数校验与响应封装，消息持久化与查询委托给 MessageService，不直接操作数据库。
 
+from fastapi import APIRouter
+
+router = APIRouter()
+
+# TODO(M4)：实现 GET /{session_id}/load 消息历史加载端点。接收 before_id（可选，用于向上翻页）和 limit（默认 20），调用 MessageService.load()，返回按时间倒序排列的消息列表。

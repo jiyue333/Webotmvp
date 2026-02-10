@@ -1,9 +1,5 @@
-/**
- * 文件职责：维护前端共享类型定义，统一 API 与状态结构约束。
- * 边界：只维护类型约束；上游供各模块引用，下游不包含执行逻辑。
- * TODO：
- * - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/types/api.ts`。
- */
+// 文件职责：维护前端共享类型定义，统一 API 响应结构与业务实体约束。
+// 边界：仅包含类型/接口声明；不包含运行时逻辑。各业务模块的局部类型在对应 api/*.ts 中定义。
 
 export interface ApiError {
   code?: number
@@ -18,30 +14,47 @@ export interface ApiResponse<T> {
   error?: ApiError
 }
 
+export interface PaginatedData<T> {
+  items: T[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export interface UserProfile {
   id: string
   username: string
   email: string
+  is_active?: boolean
+  created_at?: string
 }
 
 export interface LoginResponseData {
-  accessToken: string
-  refreshToken: string
-  user: UserProfile
+  access_token: string
+  refresh_token: string
+  expires_in: number
 }
 
 export interface KnowledgeBaseItem {
   id: string
   name: string
   description?: string
+  embedding_model_id?: string
+  chunking_config?: Record<string, unknown>
   created_at?: string
+  updated_at?: string
 }
 
 export interface ChatStreamEvent {
   id: string
-  response_type: 'references' | 'answer' | 'error' | 'stop' | 'complete' | string
+  response_type: 'references' | 'answer' | 'error'
   content: string
   done: boolean
-  knowledge_references?: unknown[]
-  data?: Record<string, unknown>
+  knowledge_references?: Array<{
+    chunk_id: string
+    knowledge_id: string
+    knowledge_title: string
+    content: string
+    score: number
+  }>
 }

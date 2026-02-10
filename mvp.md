@@ -234,51 +234,208 @@ flowchart TB
 - 参考：`internal/middleware/auth.go`、`internal/router/router.go`（auth routes）、`docs/database-architecture.md` 的 `users/auth_tokens`。
 
 ### 4.2 API 设计（语义对齐 WeKnora，路径不要求兼容）
-基础路径建议：`/api/v1`（可按项目约定调整）
+基础路径：`/api/v1`
 
-| 分类      | 方法                    | 路径                                     | 对齐来源                         |
-| --------- | ----------------------- | ---------------------------------------- | -------------------------------- |
-| Auth      | POST                    | `/auth/register`                         | `router.go`                      |
-| Auth      | POST                    | `/auth/login`                            | `router.go`                      |
-| Auth      | POST                    | `/auth/refresh`                          | `router.go`                      |
-| Auth      | POST                    | `/auth/logout`                           | `router.go`                      |
-| Auth      | GET                     | `/auth/me`                               | `router.go`                      |
-| Model     | GET                     | `/models/providers`                      | `docs/api/model.md`              |
-| Model     | POST/GET/GET/PUT/DELETE | `/models` / `/{id}`                      | `docs/api/model.md`              |
-| KB        | POST/GET/GET/PUT/DELETE | `/knowledge-bases` / `/{id}`             | `docs/api/knowledge-base.md`     |
-| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/file`   | `docs/api/knowledge.md`          |
-| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/url`    | `docs/api/knowledge.md`          |
-| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/manual` | `docs/api/knowledge.md`          |
-| Knowledge | GET                     | `/knowledge-bases/{id}/knowledge`        | `docs/api/knowledge.md`          |
-| Knowledge | GET/DELETE              | `/knowledge/{id}`                        | `docs/api/knowledge.md`          |
-| Session   | POST/GET/GET/PUT/DELETE | `/sessions` / `/{id}`                    | `docs/api/session.md`            |
-| Session   | POST                    | `/sessions/{session_id}/stop`            | `docs/api/session.md`            |
-| Session   | GET                     | `/sessions/continue-stream/{session_id}` | `docs/api/session.md`            |
-| Message   | GET                     | `/messages/{session_id}/load`            | `docs/api/message.md`            |
-| Chat      | POST                    | `/knowledge-chat/{session_id}`           | `docs/api/chat.md`               |
-| Search    | POST                    | `/knowledge-search`                      | `docs/api/chat.md` + `router.go` |
+> 说明：以下各表中"响应体"列描述的是统一响应壳 `{success, data, request_id}` 中 **`data` 字段**的内容。SSE 接口不走响应壳，直接推送事件格式（见 4.3.4）。
+
+#### 4.2.1 Auth（M2）
+
+| 方法 | 路径             | 请求体                        | 响应体                                         | 说明             |
+| ---- | ---------------- | ----------------------------- | ---------------------------------------------- | ---------------- |
+| POST | `/auth/register` | `{username, email, password}` | `{id, username, email}`                        | 注册新用户       |
+| POST | `/auth/login`    | `{email, password}`           | `{access_token, refresh_token, expires_in}`    | 登录获取令牌     |
+| POST | `/auth/refresh`  | `{refresh_token}`             | `{access_token, expires_in}`                   | 刷新令牌         |
+| POST | `/auth/logout`   | — (Authorization header)      | `{}`                                           | 撤销当前令牌     |
+| GET  | `/auth/me`       | —                             | `{id, username, email, is_active, created_at}` | 获取当前用户信息 |
+
+#### 4.2.2 Model（M3）
+
+| 方法   | 路径                | 请求体 / 查询参数                              | 响应体                                         | 说明                                                            |
+| ------ | ------------------- | ---------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| GET    | `/models/providers` | —                                              | `[{provider, display_name, default_base_url}]` | 厂商列表                                                        |
+| POST   | `/models`           | `{name, type, source, parameters, is_default}` | Model 对象                                     | 创建模型。type: llm/embedding/rerank; source: openai/ollama/... |
+| GET    | `/models`           | `?type=&source=`                               | `[Model]`                                      | 模型列表，支持 type/source 筛选                                 |
+| GET    | `/models/{id}`      | —                                              | Model 对象（api_key 脱敏）                     | 模型详情                                                        |
+| PUT    | `/models/{id}`      | 可选字段                                       | Model 对象                                     | 更新模型                                                        |
+| DELETE | `/models/{id}`      | —                                              | `{}`                                           | 删除模型，需检查是否被知识库引用                                |
+
+Model 对象：`{id, name, type, source, description, parameters, is_default, status, created_at, updated_at}`
+parameters 示例：`{api_key, base_url, model_name, temperature, max_tokens}`
+
+#### 4.2.3 Knowledge Base（M3）
+
+| 方法   | 路径                    | 请求体 / 查询参数                                           | 响应体                 | 说明                              |
+| ------ | ----------------------- | ----------------------------------------------------------- | ---------------------- | --------------------------------- |
+| POST   | `/knowledge-bases`      | `{name, description, embedding_model_id, chunking_config?}` | KB 对象                | 创建知识库                        |
+| GET    | `/knowledge-bases`      | `?page=&page_size=`                                         | `{items: [KB], total}` | 知识库列表                        |
+| GET    | `/knowledge-bases/{id}` | —                                                           | KB 对象                | 知识库详情                        |
+| PUT    | `/knowledge-bases/{id}` | 可选字段                                                    | KB 对象                | 更新知识库                        |
+| DELETE | `/knowledge-bases/{id}` | —                                                           | `{}`                   | 删除知识库，级联删除关联知识/标签 |
+
+KB 对象：`{id, name, description, embedding_model_id, chunking_config, created_at, updated_at}`
+chunking_config 默认值：`{chunk_size: 512, chunk_overlap: 50, split_markers: ["\n\n", "\n", "。"]}`
+
+#### 4.2.4 Knowledge Tag（M3）
+
+| 方法   | 路径                                  | 请求体                        | 响应体   | 说明                             |
+| ------ | ------------------------------------- | ----------------------------- | -------- | -------------------------------- |
+| GET    | `/knowledge-bases/{id}/tags`          | —                             | `[Tag]`  | 标签列表（含关联知识数量）       |
+| POST   | `/knowledge-bases/{id}/tags`          | `{name, color?, sort_order?}` | Tag 对象 | 创建标签，同 KB 下 name 唯一     |
+| PUT    | `/knowledge-bases/{id}/tags/{tag_id}` | 可选字段                      | Tag 对象 | 更新标签                         |
+| DELETE | `/knowledge-bases/{id}/tags/{tag_id}` | —                             | `{}`     | 删除标签，关联知识的 tag_id 置空 |
+
+Tag 对象：`{id, knowledge_base_id, name, color, sort_order, created_at, updated_at}`
+
+#### 4.2.5 Knowledge（M3）
+
+| 方法   | 路径                                     | 请求体 / 查询参数           | 响应体                           | 说明                                           |
+| ------ | ---------------------------------------- | --------------------------- | -------------------------------- | ---------------------------------------------- |
+| POST   | `/knowledge-bases/{id}/knowledge/file`   | multipart: file             | Knowledge 对象                   | 文件导入（PDF/DOCX/MD/TXT/CSV/XLSX），异步解析 |
+| POST   | `/knowledge-bases/{id}/knowledge/url`    | `{url}`                     | Knowledge 对象                   | URL 导入，异步抓取                             |
+| POST   | `/knowledge-bases/{id}/knowledge/manual` | `{title, content}`          | Knowledge 对象                   | 手工 Markdown 录入                             |
+| GET    | `/knowledge-bases/{id}/knowledge`        | `?page=&page_size=&tag_id=` | `{items: [Knowledge], total}`    | 知识列表，支持 tag_id 筛选                     |
+| GET    | `/knowledge/{id}`                        | —                           | Knowledge 对象（含 chunk_count） | 知识详情                                       |
+| DELETE | `/knowledge/{id}`                        | —                           | `{}`                             | 软删除，异步清理 chunks/embeddings             |
+
+Knowledge 对象：`{id, knowledge_base_id, type, title, source, parse_status, enable_status, file_name, file_type, file_size, tag_id, created_at, updated_at}`
+parse_status 枚举：`unprocessed -> processing -> completed / failed`
+
+#### 4.2.6 Session（M4）
+
+| 方法   | 路径                                     | 请求体 / 查询参数             | 响应体       | 说明                                           |
+| ------ | ---------------------------------------- | ----------------------------- | ------------ | ---------------------------------------------- |
+| POST   | `/sessions`                              | `{knowledge_base_id, title?}` | Session 对象 | 创建会话                                       |
+| GET    | `/sessions`                              | —                             | `[Session]`  | 会话列表（按最后活跃时间倒序）                 |
+| GET    | `/sessions/{id}`                         | —                             | Session 对象 | 会话详情                                       |
+| PUT    | `/sessions/{id}`                         | `{title?}`                    | Session 对象 | 更新会话标题                                   |
+| DELETE | `/sessions/{id}`                         | —                             | `{}`         | 删除会话，级联删除消息                         |
+| POST   | `/sessions/{session_id}/stop`            | —                             | `{}`         | 停止流式生成                                   |
+| GET    | `/sessions/continue-stream/{session_id}` | Header: `Last-Event-ID`       | SSE 事件流   | 恢复断开的 SSE 连接，从 Last-Event-ID 之后回放 |
+
+Session 对象：`{id, title, knowledge_base_id, created_at, updated_at}`
+
+#### 4.2.7 Message（M4）
+
+| 方法 | 路径                          | 查询参数               | 响应体      | 说明                     |
+| ---- | ----------------------------- | ---------------------- | ----------- | ------------------------ |
+| GET  | `/messages/{session_id}/load` | `?before_id=&limit=20` | `[Message]` | 消息历史（向上翻页加载） |
+
+Message 对象：`{id, session_id, role, content, knowledge_references, is_completed, created_at}`
+role 枚举：`user / assistant`
+
+#### 4.2.8 Chat（M4）
+
+| 方法 | 路径                           | 请求体                  | 响应体     | 说明             |
+| ---- | ------------------------------ | ----------------------- | ---------- | ---------------- |
+| POST | `/knowledge-chat/{session_id}` | `{query, temperature?}` | SSE 事件流 | 知识对话（流式） |
+
+SSE 事件格式见 §4.3。
+
+#### 4.2.9 Search（M6）
+
+| 方法 | 路径                | 请求体                               | 响应体                                                        | 说明                             |
+| ---- | ------------------- | ------------------------------------ | ------------------------------------------------------------- | -------------------------------- |
+| POST | `/knowledge-search` | `{query, knowledge_base_id, top_k?}` | `[{chunk_id, content, score, knowledge_id, knowledge_title}]` | 独立检索（向量 + BM25 + Rerank） |
 
 ### 4.3 请求/响应与错误码规范
-- 成功：
+
+#### 4.3.1 统一响应壳
+
+所有 API 返回统一 JSON 结构：
+
+成功：
 ```json
-{"success": true, "data": {}, "request_id": "req_xxx"}
+{
+  "success": true,
+  "data": {},
+  "request_id": "req_xxx"
+}
 ```
-- 失败：
+
+列表成功（带分页）：
 ```json
-{"success": false, "error": {"code": 1000, "message": "bad request", "details": {}}}
+{
+  "success": true,
+  "data": {
+    "items": [],
+    "total": 100,
+    "page": 1,
+    "page_size": 20
+  },
+  "request_id": "req_xxx"
+}
 ```
-- SSE（对齐 WeKnora）：
+
+失败：
 ```json
-{"id":"msg_xxx","response_type":"references|answer|error","content":"...","done":false,"knowledge_references":[]}
+{
+  "success": false,
+  "error": {
+    "code": 1000,
+    "message": "bad request",
+    "details": {}
+  },
+  "request_id": "req_xxx"
+}
 ```
-- 错误码风格对齐：`internal/errors/errors.go`。
+
+#### 4.3.2 HTTP 状态码
+
+| 状态码 | 场景                                                    |
+| ------ | ------------------------------------------------------- |
+| 200    | 查询/更新/删除成功                                      |
+| 201    | 创建成功                                                |
+| 400    | 业务参数校验失败（应用层主动抛出）                      |
+| 401    | 未认证或 token 过期                                     |
+| 403    | 无权限                                                  |
+| 404    | 资源不存在                                              |
+| 409    | 资源冲突（如 username/email 重复）                      |
+| 422    | 请求体结构校验失败（FastAPI/Pydantic 自动返回，不覆盖） |
+| 500    | 服务器内部错误                                          |
+
+#### 4.3.3 业务错误码
+
+| 码段      | 域        | 示例                                                               |
+| --------- | --------- | ------------------------------------------------------------------ |
+| 1000-1099 | 通用      | 1000 参数校验失败, 1001 内部错误                                   |
+| 1100-1199 | Auth      | 1100 用户已存在, 1101 凭证无效, 1102 token 过期, 1103 token 已撤销 |
+| 1200-1299 | Model     | 1200 模型不存在, 1201 模型被引用无法删除                           |
+| 1300-1399 | KB        | 1300 知识库不存在, 1301 名称重复                                   |
+| 1400-1499 | Knowledge | 1400 知识不存在, 1401 文件类型不支持, 1402 file_hash 重复          |
+| 1500-1599 | Tag       | 1500 标签不存在, 1501 同知识库下标签名重复                         |
+| 1600-1699 | Session   | 1600 会话不存在, 1601 会话已停止                                   |
+| 1700-1799 | Message   | 1700 消息不存在                                                    |
+| 1800-1899 | Chat      | 1800 流式生成失败                                                  |
+| 1900-1999 | Search    | 1900 检索失败                                                      |
+
+#### 4.3.4 SSE 事件格式（对齐 WeKnora）
+
+```json
+{
+  "id": "msg_xxx",
+  "response_type": "references|answer|error",
+  "content": "...",
+  "done": false,
+  "knowledge_references": [
+    {
+      "chunk_id": "xxx",
+      "knowledge_id": "xxx",
+      "knowledge_title": "xxx",
+      "content": "匹配片段文本",
+      "score": 0.85
+    }
+  ]
+}
+```
+
+事件流顺序：`references`（引用列表） → `answer`（逐 token 推送，done=false） → `answer`（done=true） 或 `error`。
 
 ### 4.4 幂等策略（MVP）
 - 不新增独立幂等子系统（避免超出 WeKnora 能力域）。
 - 写操作防重采用 WeKnora 现有语义：
   - 文件导入：`file_hash` 去重（`knowledge` 层）。
   - 请求追踪：`X-Request-ID`。
-- 说明：如果后续需要“严格幂等键”，作为后续增强，不纳入本 MVP。
+- 说明：如果后续需要"严格幂等键"，作为后续增强，不纳入本 MVP。
 
 ### 4.5 数据模型（单租户多用户版）
 
@@ -298,30 +455,220 @@ erDiagram
     knowledge_bases ||--o| sessions : binds
 ```
 
-#### 4.5.2 关键表（来源于 WeKnora 并裁剪）
-- `users`
-- `auth_tokens`
-- `models`
-- `knowledge_bases`
-- `knowledge_tags`
-- `knowledges`
-- `chunks`
-- `embeddings`
-- `sessions`
-- `messages`
+#### 4.5.2 表结构定义
 
-说明：
-- 以上均可在 `docs/database-architecture.md` 与 `migrations/versioned/*.sql` 找到对应原型。
-- 裁剪点：去掉 `tenant_id` 主隔离逻辑，改为 `created_by/owner_id`（用户归属）。
+以下均基于 WeKnora 的 `migrations/versioned/000000_init.up.sql` 等迁移文件裁剪而来，主要变更：去除 `tenant_id`，改用 `created_by`（用户归属）。
+
+##### users
+
+| 字段          | 类型         | 约束             | 默认值            | 说明               |
+| ------------- | ------------ | ---------------- | ----------------- | ------------------ |
+| id            | VARCHAR(36)  | PK               | uuid              | 用户 ID            |
+| username      | VARCHAR(100) | NOT NULL, UNIQUE | —                 | 用户名             |
+| email         | VARCHAR(255) | NOT NULL, UNIQUE | —                 | 邮箱               |
+| password_hash | VARCHAR(255) | NOT NULL         | —                 | 密码哈希（bcrypt） |
+| is_active     | BOOLEAN      | NOT NULL         | true              | 是否激活           |
+| created_at    | TIMESTAMPTZ  |                  | CURRENT_TIMESTAMP | 创建时间           |
+| updated_at    | TIMESTAMPTZ  |                  | CURRENT_TIMESTAMP | 更新时间           |
+| deleted_at    | TIMESTAMPTZ  |                  | —                 | 软删除             |
+
+索引：`UNIQUE(username)`, `UNIQUE(email)`
+
+##### auth_tokens
+
+| 字段       | 类型        | 约束                    | 默认值            | 说明             |
+| ---------- | ----------- | ----------------------- | ----------------- | ---------------- |
+| id         | VARCHAR(36) | PK                      | uuid              | 令牌 ID          |
+| user_id    | VARCHAR(36) | NOT NULL, FK → users.id | —                 | 用户 ID          |
+| token      | TEXT        | NOT NULL                | —                 | JWT 令牌值       |
+| token_type | VARCHAR(50) | NOT NULL                | —                 | access / refresh |
+| expires_at | TIMESTAMPTZ | NOT NULL                | —                 | 过期时间         |
+| is_revoked | BOOLEAN     | NOT NULL                | false             | 是否已撤销       |
+| created_at | TIMESTAMPTZ |                         | CURRENT_TIMESTAMP | 创建时间         |
+
+索引：`idx_auth_tokens_user_id(user_id)`, `idx_auth_tokens_expires(expires_at)`
+外键：`user_id → users.id ON DELETE CASCADE`
+
+##### models
+
+| 字段        | 类型         | 约束     | 默认值            | 说明                                 |
+| ----------- | ------------ | -------- | ----------------- | ------------------------------------ |
+| id          | VARCHAR(64)  | PK       | uuid              | 模型 ID                              |
+| name        | VARCHAR(255) | NOT NULL | —                 | 显示名称                             |
+| type        | VARCHAR(50)  | NOT NULL | —                 | llm / embedding / rerank             |
+| source      | VARCHAR(50)  | NOT NULL | —                 | openai / ollama / azure / ...        |
+| description | TEXT         |          | —                 | 描述                                 |
+| parameters  | JSONB        | NOT NULL | —                 | {api_key, base_url, model_name, ...} |
+| is_default  | BOOLEAN      | NOT NULL | false             | 是否默认                             |
+| status      | VARCHAR(50)  | NOT NULL | 'active'          | 状态                                 |
+| created_by  | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id                       |
+| created_at  | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间                             |
+| updated_at  | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间                             |
+| deleted_at  | TIMESTAMPTZ  |          | —                 | 软删除                               |
+
+索引：`idx_models_type(type)`, `idx_models_source(source)`
+
+##### knowledge_bases
+
+| 字段               | 类型         | 约束     | 默认值            | 说明              |
+| ------------------ | ------------ | -------- | ----------------- | ----------------- |
+| id                 | VARCHAR(36)  | PK       | uuid              | 知识库 ID         |
+| name               | VARCHAR(255) | NOT NULL | —                 | 名称              |
+| description        | TEXT         |          | —                 | 描述              |
+| embedding_model_id | VARCHAR(64)  | NOT NULL | —                 | Embedding 模型 ID |
+| chunking_config    | JSONB        | NOT NULL | 见下方            | 分块配置          |
+| created_by         | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id    |
+| created_at         | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间          |
+| updated_at         | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间          |
+| deleted_at         | TIMESTAMPTZ  |          | —                 | 软删除            |
+
+chunking_config 默认值：
+```json
+{"chunk_size": 512, "chunk_overlap": 50, "split_markers": ["\n\n", "\n", "。"], "keep_separator": true}
+```
+
+##### knowledge_tags
+
+| 字段              | 类型         | 约束     | 默认值            | 说明                   |
+| ----------------- | ------------ | -------- | ----------------- | ---------------------- |
+| id                | VARCHAR(36)  | PK       | uuid              | 标签 ID                |
+| knowledge_base_id | VARCHAR(36)  | NOT NULL | —                 | 所属知识库             |
+| name              | VARCHAR(128) | NOT NULL | —                 | 标签名称               |
+| color             | VARCHAR(32)  |          | —                 | 颜色代码（如 #FF6600） |
+| sort_order        | INTEGER      | NOT NULL | 0                 | 排序权重               |
+| created_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间               |
+| updated_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间               |
+| deleted_at        | TIMESTAMPTZ  |          | —                 | 软删除                 |
+
+索引：`UNIQUE(knowledge_base_id, name) WHERE deleted_at IS NULL` — 仅对未删除记录生效，删除后可重建同名标签
+
+##### knowledges
+
+| 字段              | 类型         | 约束     | 默认值            | 说明                                          |
+| ----------------- | ------------ | -------- | ----------------- | --------------------------------------------- |
+| id                | VARCHAR(36)  | PK       | uuid              | 知识 ID                                       |
+| knowledge_base_id | VARCHAR(36)  | NOT NULL | —                 | 所属知识库                                    |
+| type              | VARCHAR(50)  | NOT NULL | —                 | file / url / manual                           |
+| title             | VARCHAR(255) | NOT NULL | —                 | 标题                                          |
+| source            | VARCHAR(128) | NOT NULL | —                 | 来源描述                                      |
+| parse_status      | VARCHAR(50)  | NOT NULL | 'unprocessed'     | unprocessed / processing / completed / failed |
+| enable_status     | VARCHAR(50)  | NOT NULL | 'enabled'         | enabled / disabled                            |
+| file_name         | VARCHAR(255) |          | —                 | 原始文件名                                    |
+| file_type         | VARCHAR(50)  |          | —                 | pdf / docx / md / txt / csv / xlsx            |
+| file_size         | BIGINT       |          | —                 | 文件大小（字节）                              |
+| file_path         | TEXT         |          | —                 | 存储路径（MinIO/本地）                        |
+| file_hash         | VARCHAR(64)  |          | —                 | 文件 SHA-256 哈希（去重用）                   |
+| tag_id            | VARCHAR(36)  |          | —                 | 标签 ID                                       |
+| error_message     | TEXT         |          | —                 | 解析失败原因                                  |
+| metadata          | JSONB        |          | —                 | 扩展元数据                                    |
+| created_by        | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id                                |
+| processed_at      | TIMESTAMPTZ  |          | —                 | 解析完成时间                                  |
+| created_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间                                      |
+| updated_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间                                      |
+| deleted_at        | TIMESTAMPTZ  |          | —                 | 软删除                                        |
+
+索引：`idx_knowledges_kb(knowledge_base_id)`, `idx_knowledges_status(parse_status)`
+部分唯一索引：`UNIQUE(knowledge_base_id, file_hash) WHERE deleted_at IS NULL` — 同知识库下未删除记录不允许哈希重复
+
+##### chunks
+
+| 字段              | 类型        | 约束     | 默认值            | 说明                        |
+| ----------------- | ----------- | -------- | ----------------- | --------------------------- |
+| id                | VARCHAR(36) | PK       | uuid              | 分块 ID                     |
+| knowledge_base_id | VARCHAR(36) | NOT NULL | —                 | 所属知识库                  |
+| knowledge_id      | VARCHAR(36) | NOT NULL | —                 | 所属知识                    |
+| content           | TEXT        | NOT NULL | —                 | 分块文本                    |
+| chunk_index       | INTEGER     | NOT NULL | —                 | 块序号（0-based）           |
+| chunk_type        | VARCHAR(20) | NOT NULL | 'text'            | text / image                |
+| is_enabled        | BOOLEAN     | NOT NULL | true              | 是否启用                    |
+| start_at          | INTEGER     | NOT NULL | —                 | 在原文中的起始偏移          |
+| end_at            | INTEGER     | NOT NULL | —                 | 在原文中的结束偏移          |
+| pre_chunk_id      | VARCHAR(36) |          | —                 | 前一分块 ID（双向链表）     |
+| next_chunk_id     | VARCHAR(36) |          | —                 | 后一分块 ID                 |
+| parent_chunk_id   | VARCHAR(36) |          | —                 | 父分块 ID（层级分块）       |
+| tag_id            | VARCHAR(36) |          | —                 | 标签 ID（继承自 knowledge） |
+| created_at        | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 创建时间                    |
+| updated_at        | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 更新时间                    |
+| deleted_at        | TIMESTAMPTZ |          | —                 | 软删除                      |
+
+索引：`idx_chunks_knowledge(knowledge_id)`, `idx_chunks_kb(knowledge_base_id)`
+
+##### embeddings
+
+| 字段              | 类型        | 约束     | 默认值            | 说明                              |
+| ----------------- | ----------- | -------- | ----------------- | --------------------------------- |
+| id                | SERIAL      | PK       | auto              | 自增 ID                           |
+| source_id         | VARCHAR(64) | NOT NULL | —                 | 源 ID（chunk_id）                 |
+| source_type       | INTEGER     | NOT NULL | —                 | 源类型（1=chunk）                 |
+| chunk_id          | VARCHAR(64) |          | —                 | 对应分块 ID                       |
+| knowledge_id      | VARCHAR(64) |          | —                 | 对应知识 ID                       |
+| knowledge_base_id | VARCHAR(64) |          | —                 | 对应知识库 ID                     |
+| content           | TEXT        |          | —                 | 原文（冗余存储，检索时避免 JOIN） |
+| dimension         | INTEGER     | NOT NULL | —                 | 向量维度                          |
+| embedding         | HALFVEC     |          | —                 | 向量数据（pgvector halfvec）      |
+| is_enabled        | BOOLEAN     |          | true              | 是否启用                          |
+| tag_id            | VARCHAR(36) |          | —                 | 标签 ID                           |
+| created_at        | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 创建时间                          |
+| updated_at        | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 更新时间                          |
+
+索引：`UNIQUE(source_id, source_type)`, `idx_embeddings_kb(knowledge_base_id)`
+向量索引：`HNSW(embedding) halfvec_cosine_ops`（按 dimension 分区建索引）
+全文索引：`BM25(content)` 使用 `chinese_lindera` 分词器（pg_search 扩展）
+
+##### sessions
+
+| 字段              | 类型         | 约束     | 默认值            | 说明           |
+| ----------------- | ------------ | -------- | ----------------- | -------------- |
+| id                | VARCHAR(36)  | PK       | uuid              | 会话 ID        |
+| title             | VARCHAR(255) |          | —                 | 会话标题       |
+| knowledge_base_id | VARCHAR(36)  |          | —                 | 绑定的知识库   |
+| created_by        | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id |
+| created_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间       |
+| updated_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间       |
+| deleted_at        | TIMESTAMPTZ  |          | —                 | 软删除         |
+
+说明：WeKnora 的 sessions 表含大量检索参数（top_k/threshold/rerank 等），MVP 阶段先精简为核心字段，检索参数从知识库继承或使用全局默认值。
+
+##### messages
+
+| 字段                 | 类型        | 约束     | 默认值            | 说明                     |
+| -------------------- | ----------- | -------- | ----------------- | ------------------------ |
+| id                   | VARCHAR(36) | PK       | uuid              | 消息 ID                  |
+| request_id           | VARCHAR(36) | NOT NULL | —                 | 请求 ID（追踪用）        |
+| session_id           | VARCHAR(36) | NOT NULL | —                 | 所属会话                 |
+| role                 | VARCHAR(50) | NOT NULL | —                 | user / assistant         |
+| content              | TEXT        | NOT NULL | —                 | 消息内容                 |
+| knowledge_references | JSONB       | NOT NULL | '[]'              | 知识引用列表             |
+| is_completed         | BOOLEAN     | NOT NULL | false             | assistant 消息是否已完成 |
+| created_at           | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 创建时间                 |
+| updated_at           | TIMESTAMPTZ |          | CURRENT_TIMESTAMP | 更新时间                 |
+| deleted_at           | TIMESTAMPTZ |          | —                 | 软删除                   |
+
+索引：`idx_messages_session(session_id)`
+
+#### 4.5.3 与 WeKnora 的裁剪对比
+
+| 维度         | WeKnora                                             | Webotmvp（MVP）       | 原因                     |
+| ------------ | --------------------------------------------------- | --------------------- | ------------------------ |
+| 租户隔离     | tenant_id 全表                                      | 去除，改用 created_by | 单租户多用户，不需要隔离 |
+| 会话检索参数 | sessions 表内 20+ 字段                              | 精简为核心字段        | MVP 检索参数从 KB 继承   |
+| FAQ 相关     | knowledges.last_faq_import_result 等                | 去除                  | MVP 不含 FAQ 功能        |
+| Agent 相关   | custom_agents, sessions.agent_config                | 去除                  | MVP 不含自定义 Agent     |
+| MCP 相关     | mcp_services                                        | 去除                  | MVP 不含 MCP 集成        |
+| VLM/图像     | knowledge_bases.vlm_config, image_processing_config | 去除                  | MVP 不含多模态           |
+| 存储配额     | tenants.storage_quota/used                          | 去除                  | 无租户=无配额            |
 
 ### 4.6 数据一致性策略
 - 事务边界：
-  - 创建知识时，`knowledge` 记录与任务投递（Redis）要么都成功，要么回滚。
+  - 创建知识时，先在同一事务内落库 `knowledge` 记录（`parse_status = unprocessed`）。不在事务内投递 Redis。
+  - 后台 Worker 定期扫描 `parse_status = unprocessed` 的记录，投递解析任务并更新状态为 `processing`。投递失败则下次重试（补偿模式）。
   - 消息创建（user + assistant 占位）同事务。
 - 最终一致：
-  - 导入任务异步执行，状态机：`pending -> processing -> completed/failed`。
+  - 导入任务异步执行，状态机：`unprocessed -> processing -> completed / failed`。
 - 删除策略：
   - 软删除优先，异步清理 `chunks/embeddings/neo4j` 关联数据。
+- 软删除与唯一约束：
+  - 所有含唯一约束的表使用部分唯一索引（`WHERE deleted_at IS NULL`），确保删除后可重建同名/同哈希记录。
 
 ### 4.7 数据迁移
 - 工具：Alembic（对齐 WeKnora 的版本化迁移思路）。
@@ -374,11 +721,24 @@ erDiagram
 - 统计口径：按后端目录增量统计（建议 `git diff --numstat` 或 `cloc`），不计自动生成文件与纯文档改动。
 
 ### 6.2 TODO 规范（先统一，再执行）
-- TODO 命名：`[TAG][P1|P2|P3][状态] 描述`，示例：`[auth][P1][todo] 实现 refresh token 轮换`。
-- TAG 集合：`arch/auth/model/kb/knowledge/session/message/chat/sse/ingest/worker/retrieval/rerank/graph/obs/test/ops`。
-- 状态集合：`todo/in_progress/blocked/done/deferred`。
-- 每条 TODO 必须包含：完成条件、验证方式、归属模块（目录 + 文件）。
-- 通过门禁：阶段内 `P1` TODO 必须全部 `done`，`P2/P3` 允许有 `deferred`，但需记录原因。
+- 一条 TODO = 一个可独立完成的动作。
+- 使用 Python 单行注释，格式为 # TODO(阶段)：描述。阶段用括号标注所属里程碑，如 M1、M2。
+- 描述先写"做什么"，再用句号分隔补充实现细节（入参、委托对象、返回值等）。不使用 markdown 语法。
+- 文件顶部只放文件职责和边界（单行注释），不在顶部注释中包含 TODO。TODO 放在代码之后。
+- 示例：
+  ```python
+  # 文件职责：定义用户认证鉴权相关的 HTTP 路由。
+  # 边界：仅处理请求参数校验与响应封装，鉴权逻辑委托给 AuthService。
+
+  from fastapi import APIRouter
+
+  router = APIRouter()
+
+  # TODO(M2)：实现 POST /register 端点。接收 username/email/password，调用 AuthService.register()，返回用户信息。
+  # TODO(M2)：实现 POST /login 端点。接收 email/password，调用 AuthService.login()，返回 access_token + refresh_token。
+  ```
+- 完成后将 TODO 改为 DONE，保留原文用于追溯。
+- 阶段门禁：当前阶段的所有 TODO 必须全部 DONE 才能进入下一阶段。
 
 ### 6.3 阶段划分（按每阶段约 1000 行后端增量控制）
 

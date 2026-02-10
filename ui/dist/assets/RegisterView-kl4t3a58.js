@@ -1,0 +1,1 @@
+import{d as s,c as t,a as r,o}from"./index-CHKryHS-.js";const a={class:"register-view"},_=s({name:"RegisterView",__name:"RegisterView",setup(n){return(i,e)=>(o(),t("div",a,[...e[0]||(e[0]=[r("h1",null,"WeKnora Register",-1)])]))}});export{_ as default};

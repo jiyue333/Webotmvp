@@ -1,7 +1,10 @@
-"""
-文件职责：维护 `src/app/common/constants.py` 的模块职责与协作边界。
-边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/common/constants.py`。
-"""
+# 文件职责：定义全局业务常量，供 service/api/worker 层引用，避免魔法值散落在代码中。
+# 边界：只包含纯常量定义；不含配置加载逻辑（由 config.py 负责），不含枚举类（简单字符串常量即可，复杂枚举放各自 schema）。
 
+# TODO(M2)：定义分页默认常量。DEFAULT_PAGE_SIZE = 20, MAX_PAGE_SIZE = 100。
+# TODO(M2)：定义 parse_status 字符串常量。对外统一使用 pending/processing/completed/failed（对齐 mvp.md §6.9）。
+#   - 注意：mvp.md §4.2.5 和 DB DDL 历史用 unprocessed，§6.9 要求迁移为 pending。迁移脚本需映射 unprocessed → pending（参见 mvp.md §7.3 风险表）。
+# TODO(M2)：定义 knowledge type 字符串常量。KNOWLEDGE_TYPE_FILE / KNOWLEDGE_TYPE_URL / KNOWLEDGE_TYPE_MANUAL。
+# TODO(M2)：定义 model type 字符串常量。MODEL_TYPE_LLM / MODEL_TYPE_EMBEDDING / MODEL_TYPE_RERANK。
+# TODO(M3)：定义文件大小限制常量。MAX_UPLOAD_SIZE_BYTES，允许的文件类型列表 ALLOWED_FILE_TYPES。
+# TODO(M4)：定义消息角色常量。ROLE_USER / ROLE_ASSISTANT / ROLE_SYSTEM。

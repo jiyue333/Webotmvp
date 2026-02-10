@@ -1,40 +1,30 @@
-/**
- * 文件职责：封装 `auth` 前端 API 调用，隔离页面与 HTTP 实现细节。
- * 边界：只封装 HTTP 请求与响应解析；上游由 store/view 调用，下游对接后端 API，不管理页面状态。
- * TODO：
- * - [auth][P1][todo] 完成条件：打通认证鉴权闭环并沉淀错误码约束；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/auth.ts`。
- */
+// 文件职责：定义用户认证鉴权相关的 HTTP 接口（login/register/refresh/logout/me）。
+// 边界：仅定义接口签名与返回类型；不包含状态管理逻辑，状态由 stores/auth.ts 维护。
 
-import http from './http'
-import type { ApiResponse, LoginResponseData, UserProfile } from '../types/api'
+import type { LoginResponseData, UserProfile } from '../types/api'
 
-export interface LoginPayload {
-  email: string
-  password: string
+export function login(_data: any): Promise<LoginResponseData> {
+  throw new Error('Not implemented')
 }
 
-/**
- * 登录接口调用。
- * 输入：邮箱与密码；输出：token 与用户信息。
- */
-export async function login(payload: LoginPayload): Promise<LoginResponseData> {
-  const { data } = await http.post<ApiResponse<LoginResponseData>>('/auth/login', payload)
-  return data.data
+export function register(_data: any): Promise<UserProfile> {
+  throw new Error('Not implemented')
 }
 
-/**
- * 获取当前登录用户信息。
- * 依赖请求拦截器自动注入 Authorization 头。
- */
-export async function getMe(): Promise<UserProfile> {
-  const { data } = await http.get<ApiResponse<UserProfile>>('/auth/me')
-  return data.data
+export function refreshToken(): Promise<{ accessToken: string }> {
+  throw new Error('Not implemented')
 }
 
-/**
- * 登出接口调用。
- * 后续由 store 负责本地 token 清理。
- */
-export async function logout(): Promise<void> {
-  await http.post('/auth/logout')
+export function logout(): Promise<void> {
+  throw new Error('Not implemented')
 }
+
+export function getMe(): Promise<UserProfile> {
+  throw new Error('Not implemented')
+}
+
+// TODO(M2)：实现 login，POST /api/v1/auth/login，接收 email/password，返回 access_token + refresh_token。
+// TODO(M2)：实现 register，POST /api/v1/auth/register，接收 username/email/password，返回用户信息。
+// TODO(M2)：实现 refreshToken，POST /api/v1/auth/refresh，接收 refresh_token，返回新 access_token。
+// TODO(M2)：实现 logout，POST /api/v1/auth/logout，撤销当前令牌。
+// TODO(M2)：实现 getMe，GET /api/v1/auth/me，返回当前用户信息。

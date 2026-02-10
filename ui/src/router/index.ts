@@ -1,69 +1,66 @@
-/**
- * 文件职责：维护前端路由表与守卫策略，控制页面访问路径与登录态校验。
- * 边界：只负责路由表与守卫编排；上游由应用入口装载，下游驱动页面切换，不承载业务状态存储。
- * TODO：
- * - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/router/index.ts`。
- */
+// 文件职责：维护前端路由表与导航守卫策略，控制页面访问路径与登录态校验。
+// 边界：只负责路由声明与守卫编排；不承载业务状态存储。
 
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import LoginView from '../views/LoginView.vue'
-import KnowledgeBaseView from '../views/KnowledgeBaseView.vue'
-import ChatView from '../views/ChatView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      redirect: '/knowledge-bases'
-    },
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: () => import('../views/LoginView.vue')
     },
     {
-      path: '/knowledge-bases',
-      name: 'knowledge-bases',
-      component: KnowledgeBaseView,
-      meta: { requiresAuth: true }
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue')
     },
     {
-      path: '/chat',
-      name: 'chat',
-      component: ChatView,
-      meta: { requiresAuth: true }
+      path: '/',
+      component: () => import('../components/layout/AppLayout.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          redirect: 'knowledge-bases'
+        },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('../views/DashboardView.vue')
+        },
+        {
+          path: 'knowledge-bases',
+          name: 'kb-list',
+          component: () => import('../views/kb/KnowledgeBaseListView.vue')
+        },
+        {
+          path: 'knowledge-bases/:id',
+          name: 'kb-detail',
+          component: () => import('../views/kb/KnowledgeBaseDetailView.vue')
+        },
+        {
+          path: 'models',
+          name: 'model-manage',
+          component: () => import('../views/ModelManageView.vue')
+        },
+        {
+          path: 'chat',
+          name: 'chat',
+          component: () => import('../views/ChatView.vue')
+        },
+        {
+          path: 'chat/:sessionId',
+          name: 'chat-session',
+          component: () => import('../views/ChatView.vue')
+        }
+      ]
     }
   ]
 })
 
-/**
- * 统一路由守卫：
- * 1) 已登录但缺少用户信息时先拉取 profile；
- * 2) 未登录访问受保护路由时跳转登录页并带回跳参数；
- * 3) 已登录访问登录页时重定向到知识库首页。
- */
-router.beforeEach(async (to) => {
-  const auth = useAuthStore()
-
-  if (auth.isAuthenticated && !auth.user) {
-    try {
-      await auth.loadProfile()
-    } catch {
-      await auth.logout()
-    }
-  }
-
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
-  }
-
-  if (to.name === 'login' && auth.isAuthenticated) {
-    return { name: 'knowledge-bases' }
-  }
-
-  return true
-})
-
 export default router
+
+// TODO(M2)：实现 beforeEach 导航守卫，检查 requiresAuth 并验证 token 有效性。
+// TODO(M2)：未登录用户重定向至 /login，已登录用户访问 /login 重定向至首页。

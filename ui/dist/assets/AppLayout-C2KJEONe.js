@@ -1,0 +1,1 @@
+import{d as o,c as t,b as a,o as n,r}from"./index-CHKryHS-.js";const s={class:"app-layout"},u=o({name:"AppLayout",__name:"AppLayout",setup(p){return(c,_)=>{const e=r("router-view");return n(),t("div",s,[a(e)])}}});export{u as default};

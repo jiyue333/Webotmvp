@@ -1,9 +1,5 @@
-/**
- * 文件职责：维护前端 TypeScript 模块职责边界，承接状态与调用编排。
- * 边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
- * TODO：
- * - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/main.ts`。
- */
+// 文件职责：应用入口，挂载 Vue 实例、Pinia 状态管理、Vue Router。
+// 边界：仅负责应用初始化与插件注册；不包含业务逻辑。
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

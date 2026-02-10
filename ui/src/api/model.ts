@@ -1,22 +1,49 @@
-/**
- * 文件职责：封装 `model` 前端 API 调用，隔离页面与 HTTP 实现细节。
- * 边界：只封装 HTTP 请求与响应解析；上游由 store/view 调用，下游对接后端 API，不管理页面状态。
- * TODO：
- * - [model][P1][todo] 完成条件：补齐模型提供商与模型 CRUD 最小闭环；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/model.ts`。
- */
+// 文件职责：定义模型管理相关的 HTTP 接口（provider 列表、模型 CRUD）。
+// 边界：仅定义接口签名与类型；不包含状态管理逻辑。
 
-import http from './http'
+export interface ProviderItem {
+    provider: string
+    display_name: string
+    default_base_url: string
+}
 
 export interface ModelItem {
     id: string
     name: string
-    provider_type: string
+    type: 'llm' | 'embedding' | 'rerank'
+    source: string
+    description?: string
+    parameters?: Record<string, unknown>
+    is_default?: boolean
+    status?: string
+    created_at?: string
+    updated_at?: string
 }
 
 export const modelApi = {
-    list: () => http.get<ModelItem[]>('/models'),
-    getById: (id: string) => http.get<ModelItem>(`/models/${id}`),
-    create: (data: Partial<ModelItem>) => http.post('/models', data),
-    update: (id: string, data: Partial<ModelItem>) => http.put(`/models/${id}`, data),
-    delete: (id: string) => http.delete(`/models/${id}`),
+    listProviders: (): Promise<ProviderItem[]> => {
+        throw new Error('Not implemented')
+    },
+    list: (_type?: string, _source?: string): Promise<ModelItem[]> => {
+        throw new Error('Not implemented')
+    },
+    getById: (_id: string): Promise<ModelItem> => {
+        throw new Error('Not implemented')
+    },
+    create: (_data: Partial<ModelItem>): Promise<ModelItem> => {
+        throw new Error('Not implemented')
+    },
+    update: (_id: string, _data: Partial<ModelItem>): Promise<ModelItem> => {
+        throw new Error('Not implemented')
+    },
+    delete: (_id: string): Promise<void> => {
+        throw new Error('Not implemented')
+    }
 }
+
+// TODO(M3)：实现 listProviders，GET /api/v1/models/providers，返回厂商列表。
+// TODO(M3)：实现 list，GET /api/v1/models，支持 type/source 筛选。
+// TODO(M3)：实现 getById，GET /api/v1/models/{id}，api_key 脱敏。
+// TODO(M3)：实现 create，POST /api/v1/models，接收 name/type/source/parameters/is_default。
+// TODO(M3)：实现 update，PUT /api/v1/models/{id}，可选字段更新。
+// TODO(M3)：实现 delete，DELETE /api/v1/models/{id}，需检查是否被知识库引用。

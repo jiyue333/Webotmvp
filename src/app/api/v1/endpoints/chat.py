@@ -1,7 +1,8 @@
-"""
-文件职责：定义 `chat` 领域接口的协议入口与参数边界。
-边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
-TODO：
-- [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/v1/endpoints/chat.py`。
-"""
+# 文件职责：定义知识对话相关的 HTTP 路由（knowledge-chat SSE 流式接口）。
+# 边界：仅接收对话请求并转发给 ChatPipeline/SessionService，流式响应由 StreamManager 驱动，本模块不含检索或 LLM 调用逻辑。
 
+from fastapi import APIRouter
+
+router = APIRouter()
+
+# TODO(M4)：实现 POST /{session_id} SSE 流式端点。接收 query 文本和可选参数（temperature 等），触发 ChatPipeline，通过 StreamingResponse 推送 answer/references 事件流。

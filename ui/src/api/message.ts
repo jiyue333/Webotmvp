@@ -1,19 +1,20 @@
-/**
- * 文件职责：封装 `message` 前端 API 调用，隔离页面与 HTTP 实现细节。
- * 边界：只封装 HTTP 请求与响应解析；上游由 store/view 调用，下游对接后端 API，不管理页面状态。
- * TODO：
- * - [message][P1][todo] 完成条件：补齐消息加载与持久化约束；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/message.ts`。
- */
-
-import http from './http'
+// 文件职责：定义消息管理相关的 HTTP 接口（历史消息加载）。
+// 边界：仅定义接口签名与类型；不包含状态管理逻辑。
 
 export interface MessageItem {
     id: string
     session_id: string
     role: 'user' | 'assistant'
     content: string
+    knowledge_references?: unknown[]
+    is_completed?: boolean
+    created_at?: string
 }
 
 export const messageApi = {
-    listBySession: (sessionId: string) => http.get<MessageItem[]>(`/sessions/${sessionId}/messages`),
+    loadBySession: (_sessionId: string, _beforeId?: string, _limit?: number): Promise<MessageItem[]> => {
+        throw new Error('Not implemented')
+    }
 }
+
+// TODO(M4)：实现 loadBySession，GET /api/v1/messages/{session_id}/load，支持 before_id 和 limit 向上翻页。

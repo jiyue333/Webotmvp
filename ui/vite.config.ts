@@ -1,15 +1,25 @@
-/**
- * 文件职责：维护前端构建与开发服务器配置，约束代理与打包入口。
- * 边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
- * TODO：
- * - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/vite.config.ts`。
- */
+// 文件职责：Vite 构建与开发服务器配置，包含插件注册、代理规则。
+// 边界：仅负责构建工具链配置；不包含业务逻辑或运行时代码。
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+      imports: ['vue', 'vue-router', 'pinia'],
+      dts: 'src/auto-imports.d.ts',
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+      dts: 'src/components.d.ts',
+    }),
+  ],
   server: {
     host: '0.0.0.0',
     port: 5173,

@@ -1,7 +1,4 @@
-"""
-文件职责：维护 API 分层的入口约定与导出边界。
-边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/__init__.py`。
-"""
+# 文件职责：API 包入口，控制包级导出边界。
+# 边界：仅作为包声明，不包含路由定义或业务逻辑。
 
+# TODO(M2)：在各 endpoint 中使用 common.response 中的 ApiResponse 和 PaginatedData 包装 service 返回值。
