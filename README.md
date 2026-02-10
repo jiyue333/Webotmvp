@@ -48,10 +48,10 @@ cp .env.example .env
 - API: http://localhost:8000
 - Swagger 文档: http://localhost:8000/docs
 
-#### 4. 启动前端（新终端）
+#### 4. 启动 UI（新终端）
 
 ```bash
-./scripts/dev.sh frontend
+./scripts/dev.sh ui
 ```
 
 前端服务: http://localhost:5173

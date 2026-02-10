@@ -41,5 +41,6 @@ data/files/
 .DS_Store
 /scripts/scale_dev_jobs.sh
 server
-frontend/.vite
+ui/.vite
 .ace-tool/
+design.pen

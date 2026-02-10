@@ -8,6 +8,7 @@
 - 允许替换实现中间件（例如 Go Asynq -> Python Redis Worker），但语义与流程保持一致。
 
 ### 0.2 参考基线（仓库内）
+- 源项目位置：`/Users/taless/Code/OpenProject/WeKnora`
 - 架构与分层：`docs/system-architecture.md`、`internal/container/container.go`
 - RAG 流程：`docs/WeKnora.md`、`internal/application/service/chat_pipline/README.md`
 - 路由与接口：`docs/api/*.md`、`internal/router/router.go`
