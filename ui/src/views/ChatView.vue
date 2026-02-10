@@ -1,8 +1,8 @@
 <!--
-文件职责：维护 `ui/src/views/ChatView.vue` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：承载 `ChatView` 页面交互逻辑与展示职责，编排用户动作与状态反馈。
+边界：只负责页面渲染与交互编排；上游接收路由进入，下游调用 store/api，不沉淀底层请求实现。
 TODO：
-- [chat][P1][todo] 在 M4 完成本模块能力实现与回归验证。
+- [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/ChatView.vue`。
 -->
 
 <template>
@@ -41,7 +41,7 @@ TODO：
 <script setup lang="ts">
 /**
  * 文件职责：对话页面，负责发起知识对话并消费 SSE 流。
- * TODO：补充 references 卡片、continue-stream 与 stop API 联动。
+ * [chat][P1][todo] 完成条件：补充 references 卡片、continue-stream 与 stop API 联动。；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/ChatView.vue`。
  */
 import { ref } from 'vue'
 import type { ChatStreamEvent } from '../types/api'
@@ -54,6 +54,7 @@ const streaming = ref(false)
 let controller: AbortController | null = null
 
 async function startStream() {
+  // 发起 SSE 对话并逐块消费响应；遇到 done 或异常时结束流状态。
   if (!sessionId.value || !query.value) {
     error.value = 'session_id 和 query 不能为空'
     return
@@ -124,6 +125,7 @@ async function startStream() {
 }
 
 function stopStream() {
+  // 手动停止：中断 fetch 流并重置 streaming 标记。
   streaming.value = false
   controller?.abort()
 }

@@ -1,16 +1,10 @@
-"""M1 initial migration skeleton.
-
-Revision ID: 0001_init
-Revises: 
-Create Date: 2026-02-10
 """
-
-"""
-文件职责：维护 `src/migrations/versions/0001_init.py` 的首个 Alembic 迁移占位版本。
-边界：仅定义迁移版本锚点，不在 M1 写入业务表结构细节。
+文件职责：维护数据库迁移配置与版本入口，约束迁移执行边界。
+边界：只描述迁移配置或版本变更；上游由 alembic 调用，下游作用于数据库 schema，不处理业务请求。
 TODO：
-- [arch][P1][todo] 在 M1 后续阶段按领域逐步补齐 users/models/kb/session/message 等表迁移。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/migrations/versions/0001_init.py`。
 """
+
 
 from __future__ import annotations
 

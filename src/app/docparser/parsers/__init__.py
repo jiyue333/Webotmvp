@@ -1,7 +1,8 @@
 """
-文件职责：parsers 子包入口，导出所有格式解析器和工厂函数。
-边界：仅做导出，具体实现在各 *_parser.py 文件中。
-TODO [docparser][M5] 取消下方注释，注册所有解析器。
+文件职责：维护 docparser 子模块 `__init__` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/parsers/__init__.py`。
 """
 
 # from app.docparser.parsers.parser_factory import get_parser

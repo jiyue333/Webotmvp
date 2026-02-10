@@ -1,14 +1,12 @@
 # common/
 
 ## 文件职责
-- 提供跨模块共享的配置、常量、异常、安全与日志工具。
-- 统一错误码与基础工具的使用方式。
+- 维护 `src/app/common/README.MD` 的模块职责与协作边界。
 
 ## 边界
-- 不建立数据库、缓存、网络连接。
-- 不承载业务流程控制与外部服务调用。
+- 只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
 
 ## TODO
-- [arch][P1][todo] 在 M1 统一配置项命名并补齐默认值约定。
-- [auth][P1][todo] 在 M2 固化 JWT 与密码安全工具接口。
-- [obs][P2][todo] 在 M8 输出结构化日志字段标准。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/common/README.MD`。
+- [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/common/README.MD`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/common/README.MD`。

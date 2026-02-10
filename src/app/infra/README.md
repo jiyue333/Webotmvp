@@ -1,14 +1,23 @@
 # infra/
 
 ## 文件职责
-- 维护外部依赖连接生命周期（初始化、获取、关闭）。
-- 向上层提供统一连接访问入口。
+- 维护 `README.md` 外部依赖连接能力，统一资源初始化与释放。
 
 ## 边界
-- 仅负责连接管理，不处理业务逻辑。
-- 不直接读取散落环境变量，统一走 `common/config.py`。
+- 只负责外部连接初始化与访问；上游提供给 container/repository 使用，不承载业务状态流转。
 
 ## TODO
-- [arch][P1][todo] 在 M1 固化 DB/Redis/Neo4j/Storage 的生命周期函数模板。
-- [worker][P2][todo] 在 M5 支撑 ingest 任务的连接复用与重试策略。
-- [obs][P2][todo] 在 M8 增加连接状态指标与异常日志字段。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/infra/README.md`。
+- [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/infra/README.md`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/infra/README.md`。
+
+
+## 协作矩阵
+| 协作单元 | 输入依赖 | 输出产物 | 并行边界 | 主要阻塞点 |
+|---|---|---|---|---|
+| api | router/deps/schema | HTTP 协议与响应 | 可与 ui 并行 | service 契约未稳定 |
+| services | api/worker 调用 | 业务编排结果 | 可与 repository 并行定义接口 | repository 能力缺口 |
+| repositories | services 查询需求 | 持久化访问接口 | 可与 infra 并行 | 数据模型与索引未定 |
+| infra | config/compose | 连接与资源实例 | 可独立推进 | 外部服务参数变化 |
+| worker | queue/service | 异步任务执行结果 | 可与 api 并行 | ingest 链路未齐全 |
+| ui | api 契约 | 页面与交互状态 | 可与后端并行联调 | API 字段不稳定 |

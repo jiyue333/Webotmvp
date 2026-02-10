@@ -1,9 +1,10 @@
 """
-文件职责：Markdown 文件解析器。
-边界：负责 Markdown 文本 → 标准化 Markdown 的清洗与预处理；保留标题层级结构供 splitter 使用。
-来源对齐：WeKnora docreader/parser/markdown_parser.py
-TODO [docparser][M5] 实现 Markdown 解析（标题层级追踪、图片链接提取）。
+文件职责：维护 docparser 子模块 `markdown_parser` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/parsers/markdown_parser.py`。
 """
+
 from app.docparser.parsers.base_parser import BaseParser
 
 
@@ -11,5 +12,11 @@ class MarkdownParser(BaseParser):
     """Markdown 文件解析器。"""
 
     def parse_into_text(self, content: bytes):
-        # TODO [docparser][M5] 实现 Markdown 解析
+        # [ingest][P2][todo] 完成条件：实现 Markdown 解析；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/parsers/markdown_parser.py`。
+        """执行 `parse_into_text` 逻辑。
+
+        输入：按函数签名参数接收。
+        输出：返回当前函数声明对应的数据结果。
+        副作用：可能读取或更新进程内状态与外部依赖。
+        """
         raise NotImplementedError

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 文件职责：维护 `scripts/lint.sh` 的本地静态检查入口。
-# 边界：仅做基础语法与风格检查，不执行会改写代码的格式化动作。
+# 文件职责：封装 `lint.sh` 对应的开发运维命令，减少重复操作与误用风险。
+# 边界：只封装命令入口与流程控制；上游由开发者执行，下游调用系统工具，不定义业务规则。
 # TODO：
-# - [obs][P2][todo] 在 M8 接入统一 lint 规则（ruff/mypy/eslint）并与 CI 对齐。
+# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `bash -n scripts/*.sh` 并通过脚本分支自检；归属模块：`scripts/lint.sh`。
 
 set -euo pipefail
 

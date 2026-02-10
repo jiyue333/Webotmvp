@@ -1,8 +1,8 @@
 /**
- * 文件职责：维护 `ui/src/api/chat.ts` 的 M1 骨架与结构约束。
- * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * 文件职责：封装 `chat` 前端 API 调用，隔离页面与 HTTP 实现细节。
+ * 边界：只封装 HTTP 请求与响应解析；上游由 store/view 调用，下游对接后端 API，不管理页面状态。
  * TODO：
- * - [chat][P1][todo] 在 M4 完成本模块能力实现与回归验证。
+ * - [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/chat.ts`。
  */
 
 export interface ChatRequest {
@@ -13,7 +13,8 @@ export interface ChatRequest {
 
 /**
  * 发起 SSE 流式对话请求。
- * TODO [chat][M4] 使用 EventSource 或 fetch + ReadableStream 实现。
+ * TODO：
+ * - [chat][P1][todo] 完成条件：使用 EventSource 或 fetch + ReadableStream 实现；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/api/chat.ts`。
  */
 export function sendChatMessage(_req: ChatRequest): void {
     // placeholder

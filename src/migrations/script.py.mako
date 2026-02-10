@@ -1,7 +1,7 @@
-# 文件职责：维护 `src/migrations/script.py.mako` 的 M1 骨架与结构约束。
-# 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+# 文件职责：维护数据库迁移配置与版本入口，约束迁移执行边界。
+# 边界：只描述迁移配置或版本变更；上游由 alembic 调用，下游作用于数据库 schema，不处理业务请求。
 # TODO：
-# - [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+# - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/migrations/script.py.mako`。
 
 """${message}
 

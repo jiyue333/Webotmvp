@@ -1,12 +1,10 @@
 # services/chat_pipeline/
 
 ## 文件职责
-- 维护对话流水线各步骤的拆分模块与执行顺序。
-- 支撑 query rewrite、检索、重排、融合与流式输出。
+- 承载 chat pipeline 的 `README.md` 步骤职责，明确该步骤输入输出契约。
 
 ## 边界
-- pipeline 只负责编排步骤，不直接处理 HTTP 层细节。
-- pipeline 每个步骤应可独立测试与替换。
+- 只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
 
 ## 目标步骤
 1. `load_history`
@@ -20,6 +18,6 @@
 9. `chat_completion_stream`
 
 ## TODO
-- [chat][P1][todo] 在 M4 先打通无检索的流式对话占位流程。
-- [retrieval][P2][todo] 在 M6 接入混合检索与重排主链路。
-- [graph][P2][todo] 在 M7 接入图谱增强检索并支持降级路径。
+- [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/chat_pipeline/README.md`。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/chat_pipeline/README.md`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/chat_pipeline/README.md`。

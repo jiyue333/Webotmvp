@@ -1,7 +1,7 @@
-# 文件职责：维护 `.github/workflows/ci.yml` 的最小 CI 流水线。
-# 边界：仅覆盖 M1 所需后端测试与前端构建，不包含端到端与可观测回归。
+# 文件职责：维护 CI 流水线定义，约束构建与测试门禁。
+# 边界：只定义 CI 流水线；上游由 GitHub Actions 触发，下游执行构建测试，不承载业务代码。
 # TODO：
-# - [ops][P2][todo] 在 M8 增加 lint/type-check/smoke 与迁移校验门禁。
+# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：在 CI 中执行后端测试与前端构建并通过；归属模块：`.github/workflows/ci.yml`。
 
 name: CI
 

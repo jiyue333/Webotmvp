@@ -1,9 +1,10 @@
 """
-文件职责：OCR 后端抽象基类，定义所有 OCR 引擎的统一接口。
-边界：只定义 predict 接口，不包含具体 OCR 实现。
-来源对齐：WeKnora docreader/ocr/base.py
-TODO [docparser][M5] 确认 predict 接口是否需要 async 版本。
+文件职责：维护 docparser 子模块 `base` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/base.py`。
 """
+
 from abc import ABC, abstractmethod
 from typing import Union
 
@@ -29,4 +30,10 @@ class DummyOCRBackend(OCRBackend):
     """空实现，用于 OCR 不可用时的降级。"""
 
     def predict(self, image: Union[str, bytes]) -> str:
+        """执行 `predict` 逻辑。
+
+        输入：按函数签名参数接收。
+        输出：返回当前函数声明对应的数据结果。
+        副作用：可能读取或更新进程内状态与外部依赖。
+        """
         return ""

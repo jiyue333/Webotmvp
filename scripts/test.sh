@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 文件职责：维护 `scripts/test.sh` 的后端测试执行入口。
-# 边界：仅执行 pytest，不负责任务编排、数据准备和测试报告聚合。
+# 文件职责：封装 `test.sh` 对应的开发运维命令，减少重复操作与误用风险。
+# 边界：只封装命令入口与流程控制；上游由开发者执行，下游调用系统工具，不定义业务规则。
 # TODO：
-# - [test][P2][todo] 在 M8 增加 smoke/regression 分层测试执行选项。
+# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `bash -n scripts/*.sh` 并通过脚本分支自检；归属模块：`scripts/test.sh`。
 
 set -euo pipefail
 

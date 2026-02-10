@@ -51,30 +51,30 @@
 ## 2. 范围与对标（Scope & Parity）
 
 ### 2.1 模块对标表（WeKnora -> MVP）
-| 模块 | WeKnora 参考 | MVP 保留 | 简化说明 |
-|---|---|---|---|
-| 用户与鉴权 | `internal/router/router.go` auth routes, `internal/middleware/auth.go` | 保留 | 去掉租户切换，仅多用户 JWT |
-| 模型管理 | `docs/api/model.md`, `internal/router/router.go` | 保留 | 保留 provider 列表与模型 CRUD |
-| 知识库管理 | `docs/api/knowledge-base.md` | 保留 | 保留核心 CRUD |
-| 知识管理 | `docs/api/knowledge.md`, `internal/application/service/knowledge.go` | 保留 | 保留 file/url/manual；删除与 Agent 绑定字段 |
-| 文档解析 | `docreader/parser/*.py` | 保留 | 不再 gRPC 分服务，按 docreader 思路内置实现 |
-| OCR | `docreader/README.md` | 保留 | 具体后端实现遵循 docreader 方案，不在 MVP 文档固化 |
-| RAG Pipeline | `internal/application/service/chat_pipline/*` | 保留 | 仅 Chat 模式，移除 Agent 相关事件 |
-| 混合检索 | `search.go`, `rerank.go`, `merge.go` | 保留 | 向量后端固定单一实现 |
-| 知识图谱 | `extract_entity.go`, `search_entity.go`, `neo4j/repository.go` | 保留 | 仅 Neo4j，一条图谱实现 |
-| 会话与消息 | `docs/api/session.md`, `docs/api/message.md` | 保留 | 保留 continue-stream / stop 能力 |
-| SSE 流 | `internal/handler/session/stream.go`, `internal/stream/*` | 保留 | 使用 Redis StreamManager |
-| 异步任务 | `Asynq` 路径（container/router/task） | 保留语义 | Python Worker + Redis Queue |
-| 可观测性 | tracing/logger/middleware | 保留 | 采用 Python OTel/日志栈 |
+| 模块         | WeKnora 参考                                                           | MVP 保留 | 简化说明                                           |
+| ------------ | ---------------------------------------------------------------------- | -------- | -------------------------------------------------- |
+| 用户与鉴权   | `internal/router/router.go` auth routes, `internal/middleware/auth.go` | 保留     | 去掉租户切换，仅多用户 JWT                         |
+| 模型管理     | `docs/api/model.md`, `internal/router/router.go`                       | 保留     | 保留 provider 列表与模型 CRUD                      |
+| 知识库管理   | `docs/api/knowledge-base.md`                                           | 保留     | 保留核心 CRUD                                      |
+| 知识管理     | `docs/api/knowledge.md`, `internal/application/service/knowledge.go`   | 保留     | 保留 file/url/manual；删除与 Agent 绑定字段        |
+| 文档解析     | `docreader/parser/*.py`                                                | 保留     | 不再 gRPC 分服务，按 docreader 思路内置实现        |
+| OCR          | `docreader/README.md`                                                  | 保留     | 具体后端实现遵循 docreader 方案，不在 MVP 文档固化 |
+| RAG Pipeline | `internal/application/service/chat_pipline/*`                          | 保留     | 仅 Chat 模式，移除 Agent 相关事件                  |
+| 混合检索     | `search.go`, `rerank.go`, `merge.go`                                   | 保留     | 向量后端固定单一实现                               |
+| 知识图谱     | `extract_entity.go`, `search_entity.go`, `neo4j/repository.go`         | 保留     | 仅 Neo4j，一条图谱实现                             |
+| 会话与消息   | `docs/api/session.md`, `docs/api/message.md`                           | 保留     | 保留 continue-stream / stop 能力                   |
+| SSE 流       | `internal/handler/session/stream.go`, `internal/stream/*`              | 保留     | 使用 Redis StreamManager                           |
+| 异步任务     | `Asynq` 路径（container/router/task）                                  | 保留语义 | Python Worker + Redis Queue                        |
+| 可观测性     | tracing/logger/middleware                                              | 保留     | 采用 Python OTel/日志栈                            |
 
 ### 2.2 MVP 包含 / 不包含
-| 分类 | 包含 | 不包含 |
-|---|---|---|
-| 核心功能 | 多用户 JWT、模型管理、知识库、检索、图谱、对话、continue-stream/stop | Agent、MCP、租户 |
-| FAQ | 首版不纳入 | 可作为后续增量 |
-| 存储 | PostgreSQL + pgvector + pg_search(使用paradeDb镜像即可)、Redis、Neo4j、MinIO/本地 | Qdrant、Elasticsearch 多适配 |
-| 部署 | Docker Compose 本地部署 | K8s/Helm、多节点 |
-| 前端 | 使用 Vue 重新实现（仅覆盖 MVP 接口） | 无需要参考原项目风格 |
+| 分类     | 包含                                                                              | 不包含                       |
+| -------- | --------------------------------------------------------------------------------- | ---------------------------- |
+| 核心功能 | 多用户 JWT、模型管理、知识库、检索、图谱、对话、continue-stream/stop              | Agent、MCP、租户             |
+| FAQ      | 首版不纳入                                                                        | 可作为后续增量               |
+| 存储     | PostgreSQL + pgvector + pg_search(使用paradeDb镜像即可)、Redis、Neo4j、MinIO/本地 | Qdrant、Elasticsearch 多适配 |
+| 部署     | Docker Compose 本地部署                                                           | K8s/Helm、多节点             |
+| 前端     | 使用 Vue 重新实现（仅覆盖 MVP 接口）                                              | 无需要参考原项目风格         |
 
 ### 2.3 关键术语说明（对应你提出的问题）
 - “不做多向量后端适配（仅一个后端）”的含义：
@@ -200,28 +200,28 @@ flowchart TB
 5. 完成后更新 assistant 消息内容与状态。
 
 ### 3.3 模块职责（输入/输出/边界）
-| 模块 | 输入 | 输出 | 边界 |
-|---|---|---|---|
-| Router/Handler | HTTP 请求 | JSON/SSE | 不写复杂业务逻辑 |
-| Service | DTO + 上下文 | 领域结果 | 编排事务、状态流转 |
-| Pipeline | query/session/config | 检索结果 + 生成文本流 | 只负责 RAG 编排 |
-| DocReader(内置) | 文件/URL/配置 | 结构化文本块 + OCR结果 | 不感知 HTTP |
-| Repository | 查询条件 | 持久化对象 | 不含策略逻辑 |
-| Worker | Redis任务 | 处理结果与状态更新 | 不直接对外暴露 API |
+| 模块            | 输入                 | 输出                   | 边界               |
+| --------------- | -------------------- | ---------------------- | ------------------ |
+| Router/Handler  | HTTP 请求            | JSON/SSE               | 不写复杂业务逻辑   |
+| Service         | DTO + 上下文         | 领域结果               | 编排事务、状态流转 |
+| Pipeline        | query/session/config | 检索结果 + 生成文本流  | 只负责 RAG 编排    |
+| DocReader(内置) | 文件/URL/配置        | 结构化文本块 + OCR结果 | 不感知 HTTP        |
+| Repository      | 查询条件             | 持久化对象             | 不含策略逻辑       |
+| Worker          | Redis任务            | 处理结果与状态更新     | 不直接对外暴露 API |
 
 ### 3.4 技术栈与版本
-| 类别 | 选型 |
-|---|---|
-| 语言 | Python 3.11 |
-| Web | FastAPI + Uvicorn |
-| ORM | SQLAlchemy 2.x |
-| 迁移 | Alembic |
-| 主库 | PostgreSQL 16 + pgvector + pg_search(使用paradeDb镜像即可) |
-| 缓存/队列 | Redis |
-| 图数据库 | Neo4j |
-| 对象存储 | MinIO / 本地文件 |
-| 可观测 | OpenTelemetry + Prometheus + JSON Logging |
-| 部署 | Docker Compose |
+| 类别      | 选型                                                       |
+| --------- | ---------------------------------------------------------- |
+| 语言      | Python 3.11                                                |
+| Web       | FastAPI + Uvicorn                                          |
+| ORM       | SQLAlchemy 2.x                                             |
+| 迁移      | Alembic                                                    |
+| 主库      | PostgreSQL 16 + pgvector + pg_search(使用paradeDb镜像即可) |
+| 缓存/队列 | Redis                                                      |
+| 图数据库  | Neo4j                                                      |
+| 对象存储  | MinIO / 本地文件                                           |
+| 可观测    | OpenTelemetry + Prometheus + JSON Logging                  |
+| 部署      | Docker Compose                                             |
 
 ---
 
@@ -236,27 +236,27 @@ flowchart TB
 ### 4.2 API 设计（语义对齐 WeKnora，路径不要求兼容）
 基础路径建议：`/api/v1`（可按项目约定调整）
 
-| 分类 | 方法 | 路径 | 对齐来源 |
-|---|---|---|---|
-| Auth | POST | `/auth/register` | `router.go` |
-| Auth | POST | `/auth/login` | `router.go` |
-| Auth | POST | `/auth/refresh` | `router.go` |
-| Auth | POST | `/auth/logout` | `router.go` |
-| Auth | GET | `/auth/me` | `router.go` |
-| Model | GET | `/models/providers` | `docs/api/model.md` |
-| Model | POST/GET/GET/PUT/DELETE | `/models` / `/{id}` | `docs/api/model.md` |
-| KB | POST/GET/GET/PUT/DELETE | `/knowledge-bases` / `/{id}` | `docs/api/knowledge-base.md` |
-| Knowledge | POST | `/knowledge-bases/{id}/knowledge/file` | `docs/api/knowledge.md` |
-| Knowledge | POST | `/knowledge-bases/{id}/knowledge/url` | `docs/api/knowledge.md` |
-| Knowledge | POST | `/knowledge-bases/{id}/knowledge/manual` | `docs/api/knowledge.md` |
-| Knowledge | GET | `/knowledge-bases/{id}/knowledge` | `docs/api/knowledge.md` |
-| Knowledge | GET/DELETE | `/knowledge/{id}` | `docs/api/knowledge.md` |
-| Session | POST/GET/GET/PUT/DELETE | `/sessions` / `/{id}` | `docs/api/session.md` |
-| Session | POST | `/sessions/{session_id}/stop` | `docs/api/session.md` |
-| Session | GET | `/sessions/continue-stream/{session_id}` | `docs/api/session.md` |
-| Message | GET | `/messages/{session_id}/load` | `docs/api/message.md` |
-| Chat | POST | `/knowledge-chat/{session_id}` | `docs/api/chat.md` |
-| Search | POST | `/knowledge-search` | `docs/api/chat.md` + `router.go` |
+| 分类      | 方法                    | 路径                                     | 对齐来源                         |
+| --------- | ----------------------- | ---------------------------------------- | -------------------------------- |
+| Auth      | POST                    | `/auth/register`                         | `router.go`                      |
+| Auth      | POST                    | `/auth/login`                            | `router.go`                      |
+| Auth      | POST                    | `/auth/refresh`                          | `router.go`                      |
+| Auth      | POST                    | `/auth/logout`                           | `router.go`                      |
+| Auth      | GET                     | `/auth/me`                               | `router.go`                      |
+| Model     | GET                     | `/models/providers`                      | `docs/api/model.md`              |
+| Model     | POST/GET/GET/PUT/DELETE | `/models` / `/{id}`                      | `docs/api/model.md`              |
+| KB        | POST/GET/GET/PUT/DELETE | `/knowledge-bases` / `/{id}`             | `docs/api/knowledge-base.md`     |
+| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/file`   | `docs/api/knowledge.md`          |
+| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/url`    | `docs/api/knowledge.md`          |
+| Knowledge | POST                    | `/knowledge-bases/{id}/knowledge/manual` | `docs/api/knowledge.md`          |
+| Knowledge | GET                     | `/knowledge-bases/{id}/knowledge`        | `docs/api/knowledge.md`          |
+| Knowledge | GET/DELETE              | `/knowledge/{id}`                        | `docs/api/knowledge.md`          |
+| Session   | POST/GET/GET/PUT/DELETE | `/sessions` / `/{id}`                    | `docs/api/session.md`            |
+| Session   | POST                    | `/sessions/{session_id}/stop`            | `docs/api/session.md`            |
+| Session   | GET                     | `/sessions/continue-stream/{session_id}` | `docs/api/session.md`            |
+| Message   | GET                     | `/messages/{session_id}/load`            | `docs/api/message.md`            |
+| Chat      | POST                    | `/knowledge-chat/{session_id}`           | `docs/api/chat.md`               |
+| Search    | POST                    | `/knowledge-search`                      | `docs/api/chat.md` + `router.go` |
 
 ### 4.3 请求/响应与错误码规范
 - 成功：
@@ -382,25 +382,25 @@ erDiagram
 
 ### 6.3 阶段划分（按每阶段约 1000 行后端增量控制）
 
-| 阶段 | 名称 | 后端代码增量预算 | 关闭的 TODO 范围 | 阶段目标 |
-|------|------|------------------|------------------|----------|
-| M1 | 架构与文件骨架基线 | 500-900 行 | `arch/*` | 搭建完整骨架、注释规则、目录 README、最小可运行基线 |
-| M2 | 用户与鉴权 | 700-1100 行 | `auth/*` | 完成注册登录刷新登出与鉴权中间件闭环 |
-| M3 | 模型与知识管理 | 700-1100 行 | `model/*` `kb/*` `knowledge/*` | 完成模型与知识管理主链路（先元数据闭环） |
-| M4 | 会话与基础对话 | 700-1100 行 | `session/*` `message/*` `chat/*` `sse/*` | 完成会话消息与基础流式对话（不接检索） |
-| M5 | 知识上传与异步入库 | 800-1200 行 | `ingest/*` `worker/*` | 完成解析/OCR/分块/向量化/状态机 |
-| M6 | 检索与重排 | 800-1200 行 | `retrieval/*` `rerank/*` | 完成混合检索、重排、引用回传（先不启图谱） |
-| M7 | 图谱增强与 Pipeline 合流 | 700-1100 行 | `graph/*` | 完成实体抽取 + 图检索增强并接入对话链路 |
-| M8 | 可观测性与收尾 | 500-900 行 | `obs/*` `test/*` `ops/*` | 完成日志/指标/追踪/回归测试/runbook |
+| 阶段      | 名称                     | 后端代码增量预算 | 关闭的 TODO 范围                         | 阶段目标                                            |
+| --------- | ------------------------ | ---------------- | ---------------------------------------- | --------------------------------------------------- |
+| M1(doing) | 架构与文件骨架基线       | 500-900 行       | `arch/*`                                 | 搭建完整骨架、注释规则、目录 README、最小可运行基线 |
+| M2        | 用户与鉴权               | 700-1100 行      | `auth/*`                                 | 完成注册登录刷新登出与鉴权中间件闭环                |
+| M3        | 模型与知识管理           | 700-1100 行      | `model/*` `kb/*` `knowledge/*`           | 完成模型与知识管理主链路（先元数据闭环）            |
+| M4        | 会话与基础对话           | 700-1100 行      | `session/*` `message/*` `chat/*` `sse/*` | 完成会话消息与基础流式对话（不接检索）              |
+| M5        | 知识上传与异步入库       | 800-1200 行      | `ingest/*` `worker/*`                    | 完成解析/OCR/分块/向量化/状态机                     |
+| M6        | 检索与重排               | 800-1200 行      | `retrieval/*` `rerank/*`                 | 完成混合检索、重排、引用回传（先不启图谱）          |
+| M7        | 图谱增强与 Pipeline 合流 | 700-1100 行      | `graph/*`                                | 完成实体抽取 + 图检索增强并接入对话链路             |
+| M8        | 可观测性与收尾           | 500-900 行       | `obs/*` `test/*` `ops/*`                 | 完成日志/指标/追踪/回归测试/runbook                 |
 
 ### 6.4 各阶段任务具体描述（对标 WeKnora 原项目）
 
-#### M1 架构与文件骨架基线（结构对齐阶段）
+#### M1 架构与文件骨架基线（结构对齐阶段）--- doing
 - 对齐来源：`internal/router/router.go`、`internal/container/container.go`、`migrations/paradedb/00-init-db.sql`。
 - 关键任务：
   - 建立 Router/Handler/Service/Repository/Infra 分层骨架与依赖注入结构。
   - 创建后端与前端所需文件骨架；每个代码文件顶部写中文职责、边界、TODO。
-  - 复杂目录补 `README.md`（例如 `agent/`、`pipeline/`、`worker/`），写清编排流程与设计原则。
+  - 复杂目录补 `README.md`（例如 `chat_pipeline/`、`worker/`），写清编排流程与设计原则。
   - 建立最小运行链路：`docker compose up`、`/health`、基础 CI。
 - 本阶段不做：业务逻辑完整实现、复杂检索与图谱能力。
 - Exit Criteria：仓库“可运行 + 可读 + 可迭代”，并完成 TODO 规范落地。
@@ -483,14 +483,14 @@ M4 + M5 → M6 → M7 → M8
 - M1 后允许新增文件，但必须满足“模块归属 + 文件头注释 + README 记录”。
 
 ### 6.7 风险与缓解
-| 风险 | 缓解措施 |
-|------|----------|
-| M1 骨架规划与后续实现不完全匹配 | 在 M2+ 小步重构，并同步更新 README/TODO |
-| 单阶段代码量超预算（>1200 行） | 立即拆分 TODO 并顺延，禁止临时扩大阶段范围 |
-| `parse_status` 历史枚举不一致（`unprocessed` vs `pending`） | 在迁移脚本统一映射，接口层只暴露统一枚举 |
-| OCR 方案选型耗时 | M5 初期允许仅文本解析，OCR 作为同阶段可选增量 |
-| 图谱抽取效果不稳定 | M7 必须提供开关与降级路径，默认不阻塞主链路 |
-| stop/continue 流控边界复杂 | 先按 M4 完成事件回放与 offset 轮询，再在 M8 增加回归测试固化 |
+| 风险                                                        | 缓解措施                                                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| M1 骨架规划与后续实现不完全匹配                             | 在 M2+ 小步重构，并同步更新 README/TODO                      |
+| 单阶段代码量超预算（>1200 行）                              | 立即拆分 TODO 并顺延，禁止临时扩大阶段范围                   |
+| `parse_status` 历史枚举不一致（`unprocessed` vs `pending`） | 在迁移脚本统一映射，接口层只暴露统一枚举                     |
+| OCR 方案选型耗时                                            | M5 初期允许仅文本解析，OCR 作为同阶段可选增量                |
+| 图谱抽取效果不稳定                                          | M7 必须提供开关与降级路径，默认不阻塞主链路                  |
+| stop/continue 流控边界复杂                                  | 先按 M4 完成事件回放与 offset 轮询，再在 M8 增加回归测试固化 |
 
 ---
 

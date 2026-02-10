@@ -1,8 +1,8 @@
 """
-文件职责：维护 `src/app/api/deps.py` 的 FastAPI 依赖注入入口。
-边界：仅提供跨 endpoint 共享的公共依赖，不在此承担业务校验与编排逻辑。
+文件职责：提供 API 层依赖注入入口，统一容器与上下文获取方式。
+边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
 TODO：
-- [arch][P1][todo] 在 M1 固化 get_db_session/get_current_user 等依赖签名并对齐路由层约定。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/deps.py`。
 """
 
 from __future__ import annotations

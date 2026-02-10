@@ -1,13 +1,7 @@
 """
-文件职责：维护 `src/app/schemas/knowledge_base.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：定义 `knowledge_base` 领域 DTO 与校验结构，约束接口输入输出类型。
+边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
 TODO：
-- [kb][P1][todo] 在 M3 完成本模块能力实现与回归验证。
+- [kb][P1][todo] 完成条件：补齐知识库 CRUD 与归属关系约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/schemas/knowledge_base.py`。
 """
 
-# schemas/knowledge_base.py
-"""
-文件职责：知识库（Knowledge Base）的请求/响应 DTO。
-边界：只做数据校验与序列化，不含业务逻辑。
-TODO [kb][M3] 定义 KBCreate / KBUpdate / KBDetail / KBListItem 等 schema。
-"""

@@ -1,8 +1,8 @@
 """
-文件职责：维护 `src/migrations/env.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：维护数据库迁移配置与版本入口，约束迁移执行边界。
+边界：只描述迁移配置或版本变更；上游由 alembic 调用，下游作用于数据库 schema，不处理业务请求。
 TODO：
-- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/migrations/env.py`。
 """
 
 from logging.config import fileConfig
@@ -17,6 +17,12 @@ target_metadata = None
 
 
 def run_migrations_offline() -> None:
+    """执行 `run_migrations_offline` 逻辑。
+
+    输入：按函数签名参数接收。
+    输出：返回当前函数声明对应的数据结果。
+    副作用：可能读取或更新进程内状态与外部依赖。
+    """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
     with context.begin_transaction():
@@ -24,6 +30,12 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """执行 `run_migrations_online` 逻辑。
+
+    输入：按函数签名参数接收。
+    输出：返回当前函数声明对应的数据结果。
+    副作用：可能读取或更新进程内状态与外部依赖。
+    """
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

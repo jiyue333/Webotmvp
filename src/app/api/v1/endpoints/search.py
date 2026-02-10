@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/api/v1/endpoints/search.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：定义 `search` 领域接口的协议入口与参数边界。
+边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
 TODO：
-- [retrieval][P2][todo] 在 M6 完成本模块能力实现与回归验证。
+- [retrieval][P2][todo] 完成条件：补齐混合检索查询与召回接口；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/v1/endpoints/search.py`。
 """
 

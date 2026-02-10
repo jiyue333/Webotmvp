@@ -1,9 +1,10 @@
 """
-文件职责：PaddleOCR 后端实现。
-边界：封装 PaddleOCR SDK 调用，对外暴露统一的 predict 接口。
-来源对齐：WeKnora docreader/ocr/paddle.py
-TODO [docparser][M5] 安装 paddleocr 依赖，实现 predict 方法。
+文件职责：维护 docparser 子模块 `paddle_backend` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/paddle_backend.py`。
 """
+
 from typing import Union
 
 from app.docparser.ocr.base import OCRBackend
@@ -13,9 +14,21 @@ class PaddleOCRBackend(OCRBackend):
     """PaddleOCR 后端。"""
 
     def __init__(self):
-        # TODO [docparser][M5] 初始化 PaddleOCR 模型
+        # [ingest][P2][todo] 完成条件：初始化 PaddleOCR 模型；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/paddle_backend.py`。
+        """执行 `__init__` 逻辑。
+
+        输入：按函数签名参数接收。
+        输出：返回当前函数声明对应的数据结果。
+        副作用：可能读取或更新进程内状态与外部依赖。
+        """
         pass
 
     def predict(self, image: Union[str, bytes]) -> str:
-        # TODO [docparser][M5] 调用 PaddleOCR 执行文字识别
+        # [ingest][P2][todo] 完成条件：调用 PaddleOCR 执行文字识别；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/paddle_backend.py`。
+        """执行 `predict` 逻辑。
+
+        输入：按函数签名参数接收。
+        输出：返回当前函数声明对应的数据结果。
+        副作用：可能读取或更新进程内状态与外部依赖。
+        """
         raise NotImplementedError

@@ -1,5 +1,7 @@
 """
-文件职责：docparser 模块入口，导出核心接口。
-边界：仅做导出，不含实现逻辑。
-TODO [docparser][M5] 导出 Document、get_parser、TextSplitter 等核心类型。
+文件职责：维护 docparser 子模块 `__init__` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/__init__.py`。
 """
+

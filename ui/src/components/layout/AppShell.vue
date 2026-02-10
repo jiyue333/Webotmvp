@@ -1,8 +1,8 @@
 <!--
-文件职责：维护 `ui/src/components/layout/AppShell.vue` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：维护可复用前端组件，承接布局与通用交互渲染。
+边界：只负责组件渲染与复用交互；上游由页面组合，下游依赖 store/api 的公开能力，不持久化业务数据。
 TODO：
-- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/components/layout/AppShell.vue`。
 -->
 
 <template>
@@ -28,7 +28,7 @@ TODO：
 <script setup lang="ts">
 /**
  * 文件职责：应用公共布局，统一导航和登录态操作入口。
- * TODO：补充面包屑、租户切换占位（若未来恢复多租户）。
+ * [arch][P1][todo] 完成条件：补充面包屑、租户切换占位（若未来恢复多租户）。；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/components/layout/AppShell.vue`。
  */
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
@@ -37,6 +37,7 @@ const auth = useAuthStore()
 const router = useRouter()
 
 async function onLogout() {
+  // 退出后统一返回登录页，避免保留受保护页面状态。
   await auth.logout()
   await router.push({ name: 'login' })
 }

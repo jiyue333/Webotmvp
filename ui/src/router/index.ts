@@ -1,8 +1,8 @@
 /**
- * 文件职责：维护 `ui/src/router/index.ts` 的 M1 骨架与结构约束。
- * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * 文件职责：维护前端路由表与守卫策略，控制页面访问路径与登录态校验。
+ * 边界：只负责路由表与守卫编排；上游由应用入口装载，下游驱动页面切换，不承载业务状态存储。
  * TODO：
- * - [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+ * - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/router/index.ts`。
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
@@ -38,6 +38,12 @@ const router = createRouter({
   ]
 })
 
+/**
+ * 统一路由守卫：
+ * 1) 已登录但缺少用户信息时先拉取 profile；
+ * 2) 未登录访问受保护路由时跳转登录页并带回跳参数；
+ * 3) 已登录访问登录页时重定向到知识库首页。
+ */
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 

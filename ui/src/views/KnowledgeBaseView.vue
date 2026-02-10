@@ -1,8 +1,8 @@
 <!--
-文件职责：维护 `ui/src/views/KnowledgeBaseView.vue` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：承载 `KnowledgeBaseView` 页面交互逻辑与展示职责，编排用户动作与状态反馈。
+边界：只负责页面渲染与交互编排；上游接收路由进入，下游调用 store/api，不沉淀底层请求实现。
 TODO：
-- [knowledge][P1][todo] 在 M3 完成本模块能力实现与回归验证。
+- [knowledge][P1][todo] 完成条件：补齐知识条目管理与状态流转约束；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/KnowledgeBaseView.vue`。
 -->
 
 <template>
@@ -32,7 +32,7 @@ TODO：
 <script setup lang="ts">
 /**
  * 文件职责：知识库列表页，承接知识库管理主入口。
- * TODO：补充创建/更新/删除、分页与筛选。
+ * [knowledge][P1][todo] 完成条件：补充创建/更新/删除、分页与筛选。；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/KnowledgeBaseView.vue`。
  */
 import { onMounted, ref } from 'vue'
 import { listKnowledgeBases } from '../api/knowledgeBase'
@@ -42,6 +42,7 @@ const items = ref<KnowledgeBaseItem[]>([])
 const error = ref('')
 
 async function refresh() {
+  // 刷新知识库列表，失败时在页面保留可读错误提示。
   error.value = ''
   try {
     items.value = await listKnowledgeBases()
@@ -50,6 +51,7 @@ async function refresh() {
   }
 }
 
+// 首次进入页面自动拉取列表。
 onMounted(refresh)
 </script>
 

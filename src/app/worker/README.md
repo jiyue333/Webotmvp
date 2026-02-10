@@ -1,14 +1,23 @@
 # worker/
 
 ## 文件职责
-- 维护异步任务队列消费器与文档入库任务执行骨架。
-- 承接 ingest 状态机与失败重试策略。
+- 承载 worker 子模块 `README.md` 的任务消费与处理职责。
 
 ## 边界
-- worker 不对外暴露 HTTP 接口。
-- worker 不定义业务域对象，仅消费任务并调用 service。
+- 只处理异步任务消费与状态回写；上游来自队列，下游调用 service/repository，不提供对外 HTTP 接口。
 
 ## TODO
-- [worker][P2][todo] 在 M5 完成队列消费、任务状态更新与重试机制。
-- [ingest][P2][todo] 在 M5 打通解析/OCR/分块/向量化入库链路。
-- [obs][P2][todo] 在 M8 增加任务级日志与指标埋点。
+- [worker][P2][todo] 完成条件：补齐队列消费、重试与状态更新机制；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
+
+
+## 协作矩阵
+| 协作单元 | 输入依赖 | 输出产物 | 并行边界 | 主要阻塞点 |
+|---|---|---|---|---|
+| api | router/deps/schema | HTTP 协议与响应 | 可与 ui 并行 | service 契约未稳定 |
+| services | api/worker 调用 | 业务编排结果 | 可与 repository 并行定义接口 | repository 能力缺口 |
+| repositories | services 查询需求 | 持久化访问接口 | 可与 infra 并行 | 数据模型与索引未定 |
+| infra | config/compose | 连接与资源实例 | 可独立推进 | 外部服务参数变化 |
+| worker | queue/service | 异步任务执行结果 | 可与 api 并行 | ingest 链路未齐全 |
+| ui | api 契约 | 页面与交互状态 | 可与后端并行联调 | API 字段不稳定 |

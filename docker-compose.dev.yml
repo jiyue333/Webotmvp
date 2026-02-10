@@ -1,7 +1,7 @@
-# 文件职责：维护 `docker-compose.dev.yml` 的本地开发依赖编排。
-# 边界：仅编排开发依赖服务，不承载生产环境部署策略。
+# 文件职责：维护服务编排清单，约束依赖服务启动关系与端口映射。
+# 边界：只定义服务编排参数；上游由 docker compose 读取，下游启动容器，不包含应用业务逻辑。
 # TODO：
-# - [ops][P2][todo] 在 M8 增加可观测组件与故障注入场景的开发 profile。
+# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `docker compose config` 并通过配置渲染校验；归属模块：`docker-compose.dev.yml`。
 
 services:
   postgres:

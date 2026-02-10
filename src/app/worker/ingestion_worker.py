@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/worker/ingestion_worker.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：承载 worker 子模块 `ingestion_worker` 的任务消费与处理职责。
+边界：只处理异步任务消费与状态回写；上游来自队列，下游调用 service/repository，不提供对外 HTTP 接口。
 TODO：
-- [worker][P2][todo] 在 M5 完成本模块能力实现与回归验证。
+- [worker][P2][todo] 完成条件：补齐队列消费、重试与状态更新机制；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/worker/ingestion_worker.py`。
 """
 

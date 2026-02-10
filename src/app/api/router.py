@@ -1,8 +1,8 @@
 """
-文件职责：维护 `src/app/api/router.py` 的 API 路由聚合与挂载顺序。
-边界：仅负责路由编排，不承担具体 endpoint 的业务处理逻辑。
+文件职责：聚合 API 路由并固定挂载顺序，作为 HTTP 入口编排点。
+边界：只处理协议层入参与响应转换；上游接收 HTTP 请求，下游只调用 service 或依赖注入对象，不直接操作数据库。
 TODO：
-- [arch][P1][todo] 在 M1 按域拆分并接入 auth/model/kb/session/chat 路由。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/api/router.py`。
 """
 
 from fastapi import APIRouter

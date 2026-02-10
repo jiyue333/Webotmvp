@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/repositories/retriever/__init__.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：提供 `__init__` 检索存储访问能力，承接检索链路的数据查询。
+边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
 TODO：
-- [retrieval][P2][todo] 在 M6 完成本模块能力实现与回归验证。
+- [retrieval][P2][todo] 完成条件：补齐混合检索查询与召回接口；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/retriever/__init__.py`。
 """
 

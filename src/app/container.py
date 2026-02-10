@@ -1,8 +1,8 @@
 """
-文件职责：维护 `src/app/container.py` 的应用容器骨架与生命周期编排入口。
-边界：仅提供 M1 阶段的最小依赖容器能力，不在此实现具体业务服务注册与装配。
+文件职责：维护应用容器与资源生命周期编排，统一依赖实例管理。
+边界：只管理容器与资源生命周期；上游由应用入口调用，下游服务/仓储依赖该容器，不承载业务规则。
 TODO：
-- [arch][P1][todo] 在 M1 补齐 infra/client/service 的显式装配顺序与生命周期清单。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/container.py`。
 """
 
 from __future__ import annotations

@@ -1,8 +1,8 @@
 <!--
-文件职责：维护 `ui/src/views/LoginView.vue` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：承载 `LoginView` 页面交互逻辑与展示职责，编排用户动作与状态反馈。
+边界：只负责页面渲染与交互编排；上游接收路由进入，下游调用 store/api，不沉淀底层请求实现。
 TODO：
-- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/LoginView.vue`。
 -->
 
 <template>
@@ -33,7 +33,7 @@ TODO：
 <script setup lang="ts">
 /**
  * 文件职责：登录页面，完成用户认证入口。
- * TODO：补充注册入口、忘记密码和更细致错误码提示。
+ * [arch][P1][todo] 完成条件：补充注册入口、忘记密码和更细致错误码提示。；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/views/LoginView.vue`。
  */
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -51,6 +51,7 @@ const loading = ref(false)
 const error = ref('')
 
 async function onSubmit() {
+  // 提交登录：先置为 loading，再根据结果跳转或展示错误信息。
   loading.value = true
   error.value = ''
 

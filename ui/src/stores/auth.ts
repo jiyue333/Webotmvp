@@ -1,8 +1,8 @@
 /**
- * 文件职责：维护 `ui/src/stores/auth.ts` 的 M1 骨架与结构约束。
- * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * 文件职责：维护 `auth` 状态仓库，统一页面状态读写与派发入口。
+ * 边界：只维护前端状态与动作；上游由视图触发，下游调用 api 模块，不直接拼装网络协议。
  * TODO：
- * - [auth][P1][todo] 在 M2 完成本模块能力实现与回归验证。
+ * - [auth][P1][todo] 完成条件：打通认证鉴权闭环并沉淀错误码约束；验证方式：执行 `cd ui && npm run build` 并通过页面基础联调；归属模块：`ui/src/stores/auth.ts`。
  */
 
 import { computed, ref } from 'vue'
@@ -17,6 +17,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => Boolean(accessToken.value))
 
+  /**
+   * 登录并落地 token 与用户信息。
+   * 副作用：写入 localStorage。
+   */
   async function login(payload: LoginPayload): Promise<void> {
     const res = await loginApi(payload)
     accessToken.value = res.accessToken
@@ -26,6 +30,10 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('refresh_token', res.refreshToken)
   }
 
+  /**
+   * 在已有 access token 的前提下拉取用户资料。
+   * 若未登录则直接返回，不触发网络请求。
+   */
   async function loadProfile(): Promise<void> {
     if (!accessToken.value) {
       return
@@ -33,6 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = await getMe()
   }
 
+  /**
+   * 退出登录并清理本地认证状态。
+   * 无论后端请求成功与否，都会清理本地 token。
+   */
   async function logout(): Promise<void> {
     try {
       await logoutApi()

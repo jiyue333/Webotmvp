@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/client/embedding_client.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：封装 `embedding_client` 外部模型调用入口，统一请求参数与错误处理约束。
+边界：只封装外部模型请求；上游由 service 调用，下游对接第三方模型服务，不保存业务数据。
 TODO：
-- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/client/embedding_client.py`。
 """
 

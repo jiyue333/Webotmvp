@@ -1,14 +1,23 @@
 # services/
 
 ## 文件职责
-- 编排业务用例，协调 repository/client/infra。
-- 承接状态流转、事务边界和跨模块调用。
+- 承载 `README.md` 业务域的服务编排职责，协调上层请求与下层数据访问。
 
 ## 边界
-- Service 不直接暴露 HTTP 协议细节。
-- Service 不直接管理连接生命周期（由 infra/container 负责）。
+- 只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
 
 ## TODO
-- [arch][P1][todo] 在 M1 统一 service 接口粒度与命名约定。
-- [auth][P1][todo] 在 M2 完成用户与鉴权服务闭环。
-- [graph][P2][todo] 在 M7 完成图谱增强相关服务编排。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/README.md`。
+- [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/README.md`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/services/README.md`。
+
+
+## 协作矩阵
+| 协作单元 | 输入依赖 | 输出产物 | 并行边界 | 主要阻塞点 |
+|---|---|---|---|---|
+| api | router/deps/schema | HTTP 协议与响应 | 可与 ui 并行 | service 契约未稳定 |
+| services | api/worker 调用 | 业务编排结果 | 可与 repository 并行定义接口 | repository 能力缺口 |
+| repositories | services 查询需求 | 持久化访问接口 | 可与 infra 并行 | 数据模型与索引未定 |
+| infra | config/compose | 连接与资源实例 | 可独立推进 | 外部服务参数变化 |
+| worker | queue/service | 异步任务执行结果 | 可与 api 并行 | ingest 链路未齐全 |
+| ui | api 契约 | 页面与交互状态 | 可与后端并行联调 | API 字段不稳定 |

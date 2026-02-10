@@ -1,12 +1,10 @@
 # 架构说明（M1）
 
 ## 文件职责
-- 说明 MVP 当前结构分层与组件边界。
-- 提供后续 M2-M8 的扩展锚点。
+- 维护 `architecture.md` 文档的事实约束，向协作方说明当前实现边界与演进路径。
 
 ## 边界
-- 本文档描述的是 M1 骨架，不包含完整业务实现细节。
-- 不覆盖 Agent、MCP、多租户与多向量后端适配。
+- 只提供文档化约束与协作说明；上游供研发阅读，下游不作为运行时行为来源。
 
 ## 分层结构
 - `api`：路由与输入输出契约。
@@ -21,6 +19,17 @@
 3. 对话链路（M4-M7 目标）：会话 -> 检索/图谱 -> SSE 输出。
 
 ## TODO
-- [arch][P1][todo] 在 M1 输出 Router/Service/Repository 依赖关系图。
-- [retrieval][P2][todo] 在 M6 增加混合检索与重排数据流图。
-- [graph][P2][todo] 在 M7 增加图谱增强与降级路径图。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`docs/architecture.md`。
+- [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`docs/architecture.md`。
+- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`docs/architecture.md`。
+
+
+## 协作矩阵
+| 协作单元 | 输入依赖 | 输出产物 | 并行边界 | 主要阻塞点 |
+|---|---|---|---|---|
+| api | router/deps/schema | HTTP 协议与响应 | 可与 ui 并行 | service 契约未稳定 |
+| services | api/worker 调用 | 业务编排结果 | 可与 repository 并行定义接口 | repository 能力缺口 |
+| repositories | services 查询需求 | 持久化访问接口 | 可与 infra 并行 | 数据模型与索引未定 |
+| infra | config/compose | 连接与资源实例 | 可独立推进 | 外部服务参数变化 |
+| worker | queue/service | 异步任务执行结果 | 可与 api 并行 | ingest 链路未齐全 |
+| ui | api 契约 | 页面与交互状态 | 可与后端并行联调 | API 字段不稳定 |

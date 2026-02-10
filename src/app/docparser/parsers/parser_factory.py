@@ -1,9 +1,10 @@
 """
-文件职责：解析器工厂，根据文件类型（扩展名）自动选择合适的解析器实例。
-边界：只做路由分发，不包含具体解析逻辑。
-来源对齐：WeKnora docreader/parser/parser.py
-TODO [docparser][M5] 注册所有格式解析器，实现 get_parser 工厂方法。
+文件职责：维护 docparser 子模块 `parser_factory` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/parsers/parser_factory.py`。
 """
+
 from typing import Optional
 
 from app.docparser.parsers.base_parser import BaseParser
@@ -11,7 +12,7 @@ from app.docparser.parsers.base_parser import BaseParser
 
 # 文件扩展名 → 解析器类的映射（M5 阶段逐步注册）
 _PARSER_REGISTRY: dict[str, type[BaseParser]] = {
-    # TODO [docparser][M5] 注册各格式解析器
+    # [ingest][P2][todo] 完成条件：注册各格式解析器；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/parsers/parser_factory.py`。
     # "pdf": PDFParser,
     # "docx": DocxParser,
     # "md": MarkdownParser,

@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/middleware/error_handler.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：承载 `error_handler` 请求链路中间件职责，控制横切能力注入顺序。
+边界：只处理横切关注点；上游由应用入口注册，下游传递给后续中间件或路由，不执行业务领域逻辑。
 TODO：
-- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
+- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/middleware/error_handler.py`。
 """
 

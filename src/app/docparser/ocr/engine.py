@@ -1,9 +1,10 @@
 """
-文件职责：OCR 引擎工厂，管理各 OCR 后端实例（单例 + 线程安全）。
-边界：负责 OCR 后端的创建与缓存，不包含具体 OCR 算法。
-来源对齐：WeKnora docreader/ocr/__init__.py（OCREngine 类）
-TODO [docparser][M5] 注册 PaddleOCR 和 VLM 后端。
+文件职责：维护 docparser 子模块 `engine` 的解析/OCR/分块职责边界。
+边界：只处理文档解析、OCR 与分块相关能力；上游接收 ingest 输入，下游输出结构化结果，不直接写数据库。
+TODO：
+- [ingest][P2][todo] 完成条件：补齐解析/OCR/分块链路并定义失败回写；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/engine.py`。
 """
+
 import logging
 import threading
 from typing import Dict
@@ -39,7 +40,7 @@ class OCREngine:
 
             logger.info("创建 OCR 引擎实例: %s", backend_type)
 
-            # TODO [docparser][M5] 注册 PaddleOCR 和 VLM 后端
+            # [ingest][P2][todo] 完成条件：注册 PaddleOCR 和 VLM 后端；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/docparser/ocr/engine.py`。
             if backend_type == "paddle":
                 from app.docparser.ocr.paddle_backend import PaddleOCRBackend
                 inst = PaddleOCRBackend()

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 文件职责：维护 `scripts/migrate.sh` 的 Alembic 迁移命令封装。
-# 边界：仅透传 Alembic 参数，不在脚本中硬编码迁移策略或环境切换逻辑。
+# 文件职责：封装 `migrate.sh` 对应的开发运维命令，减少重复操作与误用风险。
+# 边界：只封装命令入口与流程控制；上游由开发者执行，下游调用系统工具，不定义业务规则。
 # TODO：
-# - [ops][P2][todo] 在 M8 增加迁移前置检查与失败回滚提示。
+# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `bash -n scripts/*.sh` 并通过脚本分支自检；归属模块：`scripts/migrate.sh`。
 
 set -euo pipefail
 

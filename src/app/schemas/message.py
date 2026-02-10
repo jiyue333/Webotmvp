@@ -1,7 +1,7 @@
 """
-文件职责：维护 `src/app/schemas/message.py` 的 M1 骨架与结构约束。
-边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+文件职责：定义 `message` 领域 DTO 与校验结构，约束接口输入输出类型。
+边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
 TODO：
-- [message][P1][todo] 在 M4 完成本模块能力实现与回归验证。
+- [message][P1][todo] 完成条件：补齐消息加载与持久化约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/schemas/message.py`。
 """
 
