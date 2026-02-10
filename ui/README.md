@@ -1,21 +1,22 @@
-# UI (M1 Skeleton)
+# ui/
 
 ## 文件职责
-- 提供 Vue3 + Vite + TypeScript 的前端骨架。
-- 提供基础路由、API 封装、登录态管理、页面占位。
+- 维护 Vue3 前端骨架、路由、状态管理与 API 访问层。
+- 承接 MVP 阶段页面与后端接口联调入口。
 
-## TODO
-- M2: 登录态完善（refresh 续期、错误码映射）
-- M3: 模型管理页与知识库管理页 CRUD
-- M4: SSE 对话页联通 stop/continue-stream
-- M6-M7: 引用展示、图谱增强内容可视化
+## 边界
+- 仅覆盖 MVP 所需页面，不复现原项目完整前端能力。
+- UI 层不实现后端业务规则，仅做展示与交互编排。
 
 ## 启动方式
-
 ```bash
 cd ui
 npm install
 npm run dev
 ```
 
-默认地址：`http://localhost:5173`
+## TODO
+- [auth][P1][todo] 在 M2 完成登录态 refresh 续期与异常映射。
+- [knowledge][P1][todo] 在 M3 完成模型与知识库 CRUD 页面联调。
+- [chat][P1][todo] 在 M4 打通 SSE 对话与 stop/continue-stream 交互。
+- [graph][P2][todo] 在 M7 增加图谱增强引用展示与可视化占位。

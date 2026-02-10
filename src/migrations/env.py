@@ -1,6 +1,8 @@
 """
-文件职责：Alembic 迁移环境配置。
-TODO：接入 SQLAlchemy Base.metadata 并启用 autogenerate。
+文件职责：维护 `src/migrations/env.py` 的 M1 骨架与结构约束。
+边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+TODO：
+- [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
 """
 
 from logging.config import fileConfig

@@ -1,36 +1,21 @@
 # schemas/
 
-## 概述
+## 文件职责
+- 维护 API 请求/响应 DTO 与参数校验规则。
+- 保证接口输入输出结构的演进可控。
 
-Pydantic DTO（Data Transfer Object）层。定义 API 请求/响应的数据结构与校验规则。
+## 边界
+- 仅负责数据结构和校验，不含业务逻辑。
+- 与数据库模型解耦，不直接暴露 ORM 实体。
 
-## 命名规范
-
-每个文件对应一个业务域，文件内按用途使用以下后缀：
-
-| 后缀       | 用途         | 示例                    |
-| ---------- | ------------ | ----------------------- |
-| `Create`   | 创建请求体   | `KnowledgeBaseCreate`   |
-| `Update`   | 更新请求体   | `KnowledgeBaseUpdate`   |
-| `Detail`   | 详情响应体   | `KnowledgeBaseDetail`   |
-| `ListItem` | 列表项响应体 | `KnowledgeBaseListItem` |
-| `Query`    | 查询参数     | `KnowledgeBaseQuery`    |
-
-## 文件与 Endpoint 对应关系
-
-| Schema 文件         | 对应 Endpoint 文件                    |
-| ------------------- | ------------------------------------- |
-| `auth.py`           | `api/v1/endpoints/auth.py`            |
-| `model.py`          | `api/v1/endpoints/models.py`          |
-| `knowledge_base.py` | `api/v1/endpoints/knowledge_bases.py` |
-| `knowledge.py`      | `api/v1/endpoints/knowledges.py`      |
-| `knowledge_tag.py`  | `api/v1/endpoints/knowledge_tags.py`  |
-| `session.py`        | `api/v1/endpoints/sessions.py`        |
-| `message.py`        | `api/v1/endpoints/messages.py`        |
-| `chat.py`           | `api/v1/endpoints/chat.py`            |
-| `common.py`         | 通用响应包装（所有接口共用）          |
+## 命名约定
+- `Create`：创建入参
+- `Update`：更新入参
+- `Detail`：详情响应
+- `ListItem`：列表项响应
+- `Query`：查询参数
 
 ## TODO
-
-- [schemas][M2] 实现 auth.py 的登录/注册 schema
-- [schemas][M3] 实现 model、knowledge_base、knowledge 的 CRUD schema
+- [arch][P1][todo] 在 M1 固化 DTO 命名规范与分页字段约定。
+- [auth][P1][todo] 在 M2 完成认证相关 schema。
+- [knowledge][P1][todo] 在 M3 完成知识管理与模型管理 schema。

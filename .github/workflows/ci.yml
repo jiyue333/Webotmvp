@@ -1,3 +1,8 @@
+# 文件职责：维护 `.github/workflows/ci.yml` 的最小 CI 流水线。
+# 边界：仅覆盖 M1 所需后端测试与前端构建，不包含端到端与可观测回归。
+# TODO：
+# - [ops][P2][todo] 在 M8 增加 lint/type-check/smoke 与迁移校验门禁。
+
 name: CI
 
 on:
@@ -14,11 +19,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - name: Install backend deps
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi uvicorn sqlalchemy alembic pytest
+          pip install fastapi "uvicorn[standard]" sqlalchemy alembic pydantic pytest
       - name: Run tests
         run: pytest -q
 
@@ -31,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
       - name: Install deps
         run: npm ci
       - name: Build

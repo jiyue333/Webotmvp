@@ -1,7 +1,10 @@
 /**
- * 文件职责：定义前端路由与基础鉴权守卫。
- * TODO：后续按业务拆分动态路由与权限角色控制。
+ * 文件职责：维护 `ui/src/router/index.ts` 的 M1 骨架与结构约束。
+ * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * TODO：
+ * - [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
  */
+
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'

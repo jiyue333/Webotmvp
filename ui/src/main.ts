@@ -1,7 +1,10 @@
 /**
- * 文件职责：前端应用入口，挂载 Router/Pinia 并启动 Vue App。
- * TODO：后续在这里接入全局异常上报与埋点初始化。
+ * 文件职责：维护 `ui/src/main.ts` 的 M1 骨架与结构约束。
+ * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * TODO：
+ * - [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
  */
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'

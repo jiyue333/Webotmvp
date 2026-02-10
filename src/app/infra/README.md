@@ -1,25 +1,14 @@
 # infra/
 
-## 概述
+## 文件职责
+- 维护外部依赖连接生命周期（初始化、获取、关闭）。
+- 向上层提供统一连接访问入口。
 
-外部基础设施连接层。管理与数据库、缓存、图数据库、对象存储的连接生命周期。
-
-## 文件说明
-
-| 文件                | 职责                               | 配置来源                          |
-| ------------------- | ---------------------------------- | --------------------------------- |
-| `db.py`             | PostgreSQL engine 与 async session | `common/config.py → DATABASE_URL` |
-| `redis.py`          | Redis 连接池                       | `common/config.py → REDIS_URL`    |
-| `neo4j_client.py`   | Neo4j driver 管理                  | `common/config.py → NEO4J_URI`    |
-| `storage_client.py` | MinIO / 本地文件存储               | `common/config.py → STORAGE_*`    |
-
-## 设计原则
-
-- 每个文件提供 **init / get / close** 三个生命周期函数，由 `container.py` 统一编排。
-- 所有连接只读取 `common/config.py` 的配置，不直接访问环境变量。
-- 与 `client/`（AI 模型远程调用）的区别：`infra/` 管理的是 **有状态的持久连接**，`client/` 是 **无状态的 HTTP 调用**。
+## 边界
+- 仅负责连接管理，不处理业务逻辑。
+- 不直接读取散落环境变量，统一走 `common/config.py`。
 
 ## TODO
-
-- [infra][M1] 实现各连接的初始化与关闭逻辑
-- [infra][M1] 在 `container.py` 中注册生命周期
+- [arch][P1][todo] 在 M1 固化 DB/Redis/Neo4j/Storage 的生命周期函数模板。
+- [worker][P2][todo] 在 M5 支撑 ingest 任务的连接复用与重试策略。
+- [obs][P2][todo] 在 M8 增加连接状态指标与异常日志字段。

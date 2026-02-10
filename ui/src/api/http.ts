@@ -1,7 +1,10 @@
 /**
- * 文件职责：封装 axios 实例，统一 baseURL、鉴权头与错误处理。
- * TODO：补充请求重试、统一错误提示映射、trace headers 透传。
+ * 文件职责：维护 `ui/src/api/http.ts` 的 M1 骨架与结构约束。
+ * 边界：仅定义职责边界与调用契约，不在本文件实现 M2-M8 的完整业务闭环。
+ * TODO：
+ * - [arch][P1][todo] 在 M1 完成本模块能力实现与回归验证。
  */
+
 import axios, { AxiosError, type AxiosInstance } from 'axios'
 import type { ApiResponse } from '../types/api'
 
