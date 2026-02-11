@@ -1,7 +1,6 @@
-"""
-文件职责：提供 `session_repository` 数据访问接口，屏蔽业务层对持久化细节的直接依赖。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [session][P1][todo] 完成条件：补齐会话生命周期管理与停止语义；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/session_repository.py`。
-"""
+# 文件职责：封装 sessions 表的数据访问操作，提供会话 CRUD、按用户查询、按知识库筛选等方法。继承 SoftDeleteRepository。对齐 mvp.md §4.5.2 sessions 表。
+# 边界：只负责 sessions 表的持久化读写；会话级别的停止/续流控制由 SessionService + StreamManager 协调。查询自动过滤 deleted_at IS NULL。上游调用者为 SessionService。
 
+# TODO(M4)：定义 SessionRepository(SoftDeleteRepository) 类，绑定 Session ORM 模型。
+# TODO(M4)：实现 list_by_user(created_by) 方法。按 updated_at 倒序返回用户的会话列表。
+# TODO(M4)：实现 get_with_kb(session_id) 方法。查询会话详情并关联加载绑定的知识库信息。

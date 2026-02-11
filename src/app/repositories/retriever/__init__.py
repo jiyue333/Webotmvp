@@ -1,7 +1,5 @@
-"""
-文件职责：提供 `__init__` 检索存储访问能力，承接检索链路的数据查询。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [retrieval][P2][todo] 完成条件：补齐混合检索查询与召回接口；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/retriever/__init__.py`。
-"""
+# 文件职责：retriever 包入口，导出检索相关仓储类（PostgresRetrieverRepository、Neo4jRetrieverRepository）。
+# 边界：retriever 包专注于检索链路的数据查询（向量相似度/BM25/图检索），与普通 CRUD 仓储（如 EmbeddingRepository）的区别在于：后者负责写入，本包负责查询。
 
+# TODO(M6)：导出 PostgresRetrieverRepository。
+# TODO(M7)：导出 Neo4jRetrieverRepository。

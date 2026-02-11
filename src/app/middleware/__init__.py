@@ -1,7 +1,9 @@
-"""
-文件职责：承载 `__init__` 请求链路中间件职责，控制横切能力注入顺序。
-边界：只处理横切关注点；上游由应用入口注册，下游传递给后续中间件或路由，不执行业务领域逻辑。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/middleware/__init__.py`。
-"""
+# 文件职责：统一注册所有 HTTP 中间件到 FastAPI 应用实例，控制中间件执行顺序。对齐 WeKnora internal/router/router.go 中间件注册段。
+# 边界：只负责按序 app.add_middleware()；不实现具体中间件逻辑，不包含业务路由注册。异常处理器（exception_handler）由 common/error_handler.py 定义，在 main.py 中注册。
 
+# TODO(M1)：定义 register_middlewares(app: FastAPI) 函数。
+# TODO(M1)：注册 CORSMiddleware（allow_origins=["*"]，前端跨域必需）。
+# TODO(M1)：注册 RequestIDMiddleware。从 request_id.py 导入并 app.add_middleware()。
+# TODO(M2)：注册 JWTAuthMiddleware。从 auth.py 导入并 app.add_middleware()。
+# TODO(M8)：注册 LoggerMiddleware。从 logger.py 导入并 app.add_middleware()。
+# TODO(M8)：注册 TracingMiddleware。从 trace.py 导入并 app.add_middleware()。

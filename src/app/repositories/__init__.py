@@ -1,7 +1,8 @@
-"""
-文件职责：提供 `__init__` 数据访问接口，屏蔽业务层对持久化细节的直接依赖。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/__init__.py`。
-"""
+# 文件职责：repositories 包入口，按需重导出仓储基类和各具体仓储类，方便外部 from app.repositories import UserRepository 式引用。
+# 边界：只负责包级导出；不包含业务逻辑，不直接实例化仓储类（实例化由依赖注入或 service 层负责）。
 
+# TODO(M2)：导出 CrudRepository, SoftDeleteRepository（基类）。
+# TODO(M2)：导出 UserRepository, AuthTokenRepository（CrudRepository 子类），供 AuthService 使用。
+# TODO(M3)：导出 ModelRepository, KnowledgeBaseRepository, KnowledgeRepository, KnowledgeTagRepository。
+# TODO(M4)：导出 SessionRepository, MessageRepository。
+# TODO(M5)：导出 ChunkRepository, EmbeddingRepository（CrudRepository 子类）。

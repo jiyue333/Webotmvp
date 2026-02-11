@@ -1,7 +1,4 @@
-"""
-文件职责：维护包级导出入口，约束子模块对外暴露符号。
-边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/__init__.py`。
-"""
+# 文件职责：app 包入口，标记 src/app 为 Python 包，按需重导出关键对象供外部引用。
+# 边界：只做重导出；不包含逻辑实现，各子模块由 main.py 和 container.py 按需导入。
 
+# TODO(M1)：从 app.main 重导出 app 实例，使 uvicorn app:app 或 from app import app 可用。

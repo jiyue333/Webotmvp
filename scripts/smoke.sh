@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
-# 文件职责：封装 `smoke.sh` 对应的开发运维命令，减少重复操作与误用风险。
-# 边界：只封装命令入口与流程控制；上游由开发者执行，下游调用系统工具，不定义业务规则。
-# TODO：
-# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `bash -n scripts/*.sh` 并通过脚本分支自检；归属模块：`scripts/smoke.sh`。
+# 文件职责：执行最小化冒烟测试，验证应用健康检查端点可正常响应，作为部署后快速验证手段。对齐 mvp.md §5.3 健康检查。
+# 边界：仅验证 /health 端点可达且响应含 status 字段；不执行业务链路测试（完整 smoke test 由 M8 补充）。
 
-set -euo pipefail
-
-HEALTH_URL="${1:-http://localhost:8000/health}"
-BODY="$(curl -fsS "$HEALTH_URL")"
-
-echo "$BODY" | grep -q '"status"' || {
-  echo "[smoke] health response missing status field: $BODY"
-  exit 1
-}
-
-echo "[smoke] ok -> $HEALTH_URL"
+# TODO(M1)：实现健康检查验证。curl GET /health，检查响应体包含 "status" 字段，失败则 exit 1。
+# TODO(M8)：扩展为完整 API smoke test。覆盖登录→导入→检索→对话链路。

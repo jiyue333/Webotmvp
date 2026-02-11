@@ -1,7 +1,8 @@
-"""
-文件职责：承载 `__init__` 业务域的服务编排职责，协调上层请求与下层数据访问。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/__init__.py`。
-"""
+# 文件职责：services 包入口，导出各业务服务类供 api/handler 和 worker 层调用。
+# 边界：仅做符号导出与包级初始化，不包含业务逻辑。
 
+# TODO(M2): 导出 AuthService、UserService。
+# TODO(M3): 导出 ModelService、KnowledgeBaseService、KnowledgeService、KnowledgeTagService。
+# TODO(M4): 导出 SessionService、MessageService、ChatService。
+# TODO(M5): 导出 ChunkService（供 Worker 层的 ingest 流程调用）。
+# TODO(M7): 导出 GraphService。

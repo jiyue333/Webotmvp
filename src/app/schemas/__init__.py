@@ -1,7 +1,2 @@
-"""
-文件职责：定义 `__init__` 领域 DTO 与校验结构，约束接口输入输出类型。
-边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/schemas/__init__.py`。
-"""
-
+# 文件职责：schemas 包入口，按需重导出各模块 schema 类，方便外部 from app.schemas import XxxCreate 式引用。
+# 边界：只做重导出；不定义新的 schema 类（各文件自行定义）。

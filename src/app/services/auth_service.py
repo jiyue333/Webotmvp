@@ -1,7 +1,11 @@
-"""
-文件职责：承载 `auth_service` 业务域的服务编排职责，协调上层请求与下层数据访问。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [auth][P1][todo] 完成条件：打通认证鉴权闭环并沉淀错误码约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/auth_service.py`。
-"""
+# 文件职责：用户认证鉴权服务，负责注册、登录、JWT 令牌生成/刷新/撤销、密码哈希校验。
+# 边界：编排 UserRepository 与 AuthTokenRepository 完成鉴权流程，不直接处理 HTTP 请求；JWT 密钥由 infra/config 注入。
+# 对标：WeKnora internal/application/service/user.go（Register/Login/RefreshToken/RevokeToken/ValidateToken/GenerateTokens）。
 
+# TODO(M2): 实现 AuthService 类骨架。注入 UserRepository、AuthTokenRepository、Config（JWT 密钥/过期时间）。
+# TODO(M2): 实现 register()。接收 username/email/password，校验唯一性，bcrypt 哈希后写入 users 表，返回用户信息。
+# TODO(M2): 实现 login()。接收 email/password，校验密码，调用 _generate_tokens() 生成 access_token + refresh_token，持久化到 auth_tokens 表。
+# TODO(M2): 实现 refresh_token()。校验 refresh_token 有效性与撤销状态，撤销旧 token，生成新 token 对。
+# TODO(M2): 实现 revoke_token()。将 auth_tokens 记录标记 is_revoked=True。
+# TODO(M2): 实现 validate_token()。解析 JWT、校验签名/过期、查询 auth_tokens 确认未撤销，返回当前用户。
+# TODO(M2): 实现 _generate_tokens()。内部方法，生成 access + refresh JWT 并写入 auth_tokens 表。

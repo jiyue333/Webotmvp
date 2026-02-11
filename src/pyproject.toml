@@ -1,25 +1,63 @@
-# 文件职责：维护后端工程配置与依赖声明，约束开发测试入口。
-# 边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-# TODO：
-# - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/pyproject.toml`。
+# 文件职责：后端 Python 工程的元数据与依赖声明，定义项目名称、版本、运行时依赖、开发依赖、工具链配置（ruff / mypy / pytest）。
+# 边界：仅声明工程级配置；不包含业务逻辑；依赖版本在此固定，运行时配置由 AppSettings（环境变量 / .env）控制。
 
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+# TODO(M1)：补充 [project] 段。name = "webotmvp"，version = "0.1.0"，requires-python = ">=3.11"。
 [project]
-name = "webotmvp-backend"
+name = "webotmvp"
 version = "0.1.0"
-description = "Webot MVP backend"
 requires-python = ">=3.11"
+description = "Webot MVP Backend"
+readme = "README.md"
+
+# TODO(M1)：补充 dependencies 列表。核心运行时依赖：fastapi / uvicorn[standard] / sqlalchemy[asyncio] / asyncpg / alembic / pydantic / pydantic-settings / redis / python-jose[cryptography] / passlib[bcrypt] / python-multipart / httpx。
 dependencies = [
-  "fastapi>=0.116.0",
-  "uvicorn[standard]>=0.35.0",
-  "sqlalchemy>=2.0.36",
-  "alembic>=1.14.0",
-  "pydantic>=2.10.0"
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "alembic",
+    "pydantic",
+    "pydantic-settings",
+    "redis",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-multipart",
+    "httpx",
 ]
 
+# TODO(M1)：补充 [project.optional-dependencies] dev 列表。开发依赖：ruff / mypy / pytest / pytest-asyncio / pytest-cov / httpx。
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "mypy",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx",
+]
+
+# TODO(M1)：补充 [tool.ruff] 段。target-version = "py311"，line-length = 120，lint.select = ["E", "F", "W", "I", "N", "UP"]。
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+lint.select = ["E", "F", "W", "I", "N", "UP"]
+
+# TODO(M1)：补充 [tool.mypy] 段。python_version = "3.11"，strict = true。
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+# TODO(M1)：补充 [tool.pytest.ini_options] 段。testpaths = ["tests"]，asyncio_mode = "auto"。
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+asyncio_mode = "auto"
+
+# TODO(M5)：在 dependencies 追加文档解析依赖。python-docx / pdfplumber / openpyxl / beautifulsoup4。
+# TODO(M5)：在 dependencies 追加 AI 模型客户端依赖。openai。
+# TODO(M7)：在 dependencies 追加图谱依赖。neo4j。
+# TODO(M8)：在 dependencies 追加可观测性依赖。opentelemetry-api / opentelemetry-sdk / opentelemetry-instrumentation-fastapi / prometheus-client / structlog。

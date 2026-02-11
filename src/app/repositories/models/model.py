@@ -1,7 +1,6 @@
-"""
-文件职责：定义 `model` 持久化模型结构，约束字段语义与存储映射。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [model][P1][todo] 完成条件：补齐模型提供商与模型 CRUD 最小闭环；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/models/model.py`。
-"""
+# 文件职责：定义 Model ORM 模型，映射 models 表。字段包括 id/name/type/source/description/parameters(JSONB)/is_default/status/created_by/时间戳/软删除。对齐 mvp.md §4.5.2 models 表结构。
+# 边界：只定义表映射和字段约束；parameters JSONB 的内容校验（api_key/base_url 等）由 schema 层负责。
 
+# TODO(M3)：定义 Model(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin) 类，__tablename__ = 'models'。
+# TODO(M3)：定义字段 name(VARCHAR(255), not null), type(VARCHAR(50), not null), source(VARCHAR(50), not null), description(Text), parameters(JSONB, not null), is_default(Boolean, default=False), status(VARCHAR(50), default='active'), created_by(VARCHAR(36), not null)。
+# TODO(M3)：定义索引 idx_models_type(type), idx_models_source(source)。

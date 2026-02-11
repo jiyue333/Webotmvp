@@ -1,7 +1,6 @@
-"""
-文件职责：定义 `session` 持久化模型结构，约束字段语义与存储映射。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [model][P1][todo] 完成条件：补齐模型提供商与模型 CRUD 最小闭环；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/models/session.py`。
-"""
+# 文件职责：定义 Session ORM 模型，映射 sessions 表。字段包括 id/title/knowledge_base_id/created_by/时间戳/软删除。对齐 mvp.md §4.5.2 sessions 表结构。
+# 边界：只定义表映射和字段约束；会话的检索参数从知识库继承或使用全局默认值，不在 sessions 表中存储（MVP 精简设计）。
 
+# TODO(M4)：定义 Session(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin) 类，__tablename__ = 'sessions'。
+# TODO(M4)：定义字段 title(VARCHAR(255)), knowledge_base_id(VARCHAR(36)), created_by(VARCHAR(36), not null)。
+# TODO(M4)：定义 relationship('Message', back_populates='session', cascade='all, delete-orphan')。

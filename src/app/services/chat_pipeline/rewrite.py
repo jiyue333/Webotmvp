@@ -1,7 +1,6 @@
-"""
-文件职责：承载 chat pipeline 的 `rewrite` 步骤职责，明确该步骤输入输出契约。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/chat_pipeline/rewrite.py`。
-"""
+# 文件职责：实现 Rewrite 插件，利用 LLM 对用户查询进行重写/补全，结合历史上下文生成更适合检索的查询。
+# 边界：仅负责查询重写，不执行检索。重写结果写入 ChatManage.rewritten_query，原始 query 保持不变。
+# 对标：WeKnora rewrite.go（PluginReWrite.OnEvent -> 调用 LLM 重写 -> 写入 ChatManage.RewriteQuery）。
 
+# TODO(M6): 实现 PluginRewrite 类。注册 REWRITE 事件，调用 LLM 进行 query 重写。
+# TODO(M6): 当历史为空或 query 足够明确时跳过重写（short-circuit），直接 next()。

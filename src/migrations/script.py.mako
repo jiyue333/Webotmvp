@@ -1,28 +1,4 @@
-# 文件职责：维护数据库迁移配置与版本入口，约束迁移执行边界。
-# 边界：只描述迁移配置或版本变更；上游由 alembic 调用，下游作用于数据库 schema，不处理业务请求。
-# TODO：
-# - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/migrations/script.py.mako`。
+# 文件职责：Alembic 迁移脚本模板（Mako），定义 `alembic revision --autogenerate` 自动生成的迁移版本文件的代码骨架。
+# 边界：仅作为模板被 Alembic 内部引擎渲染；不直接执行，不包含业务逻辑；修改此模板会影响所有后续自动生成的迁移脚本格式。
 
-"""${message}
-
-Revision ID: ${up_revision}
-Revises: ${down_revision | comma,n}
-Create Date: ${create_date}
-"""
-from alembic import op
-import sqlalchemy as sa
-
-
-# revision identifiers, used by Alembic.
-revision = ${repr(up_revision)}
-down_revision = ${repr(down_revision)}
-branch_labels = ${repr(branch_labels)}
-depends_on = ${repr(depends_on)}
-
-
-def upgrade() -> None:
-    pass
-
-
-def downgrade() -> None:
-    pass
+# TODO(M1)：补充标准 Mako 模板内容。包含 revision/down_revision 变量、imports、upgrade()/downgrade() 函数骨架。参考 Alembic 官方默认模板。

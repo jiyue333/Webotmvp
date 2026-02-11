@@ -1,19 +1,6 @@
 #!/usr/bin/env bash
-# 文件职责：封装 `lint.sh` 对应的开发运维命令，减少重复操作与误用风险。
-# 边界：只封装命令入口与流程控制；上游由开发者执行，下游调用系统工具，不定义业务规则。
-# TODO：
-# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `bash -n scripts/*.sh` 并通过脚本分支自检；归属模块：`scripts/lint.sh`。
+# 文件职责：执行后端代码质量检查，包括 Python 编译检查（compileall）和 ruff lint，供本地开发和 CI 调用。
+# 边界：仅执行静态检查；不修改代码（ruff 不加 --fix）；不运行测试（由 test.sh 负责）。
 
-set -euo pipefail
-
-echo "[lint] backend compile check"
-python -m compileall -q src/app
-
-if command -v ruff >/dev/null 2>&1; then
-  echo "[lint] ruff check"
-  (cd src && ruff check app tests)
-else
-  echo "[lint] ruff not found, skip"
-fi
-
-echo "[lint] done"
+# TODO(M1)：实现编译检查。`python -m compileall -q src/app`，验证所有 .py 文件无语法错误。
+# TODO(M1)：实现 ruff check。`cd src && ruff check app tests`，若 ruff 未安装则跳过并打印提示。

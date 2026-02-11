@@ -1,7 +1,5 @@
-"""
-文件职责：提供 `json` 通用工具函数，避免业务层重复实现。
-边界：只提供可复用工具函数；上游任意模块可调用，下游不依赖业务层对象。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/utils/json.py`。
-"""
+# 文件职责：提供 JSON 序列化辅助工具函数，处理 Pydantic 模型、datetime、UUID 等非标准类型的 JSON 编码。对齐 WeKnora internal/utils/json.go。
+# 边界：只提供序列化/反序列化工具函数；不依赖 ORM 模型（由 repository 层负责），不处理 HTTP 响应格式（由 common/response.py 负责）。
 
+# TODO(M2)：实现 CustomJSONEncoder(json.JSONEncoder) 类，支持 datetime / UUID / Decimal / Pydantic BaseModel 的自动序列化。
+# TODO(M2)：实现 to_json(obj: Any) -> str 函数，使用 CustomJSONEncoder 将对象序列化为 JSON 字符串。

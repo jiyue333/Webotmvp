@@ -1,7 +1,7 @@
-"""
-文件职责：定义 `message` 持久化模型结构，约束字段语义与存储映射。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [model][P1][todo] 完成条件：补齐模型提供商与模型 CRUD 最小闭环；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/models/message.py`。
-"""
+# 文件职责：定义 Message ORM 模型，映射 messages 表。字段包括 id/request_id/session_id/role/content/knowledge_references(JSONB)/is_completed/时间戳/软删除。对齐 mvp.md §4.5.2 messages 表结构。
+# 边界：只定义表映射和字段约束；knowledge_references JSONB 的内容结构由 ChatPipeline 产出，此处不做内容校验。
 
+# TODO(M4)：定义 Message(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin) 类，__tablename__ = 'messages'。
+# TODO(M4)：定义字段 request_id(VARCHAR(36), not null), session_id(VARCHAR(36), not null), role(VARCHAR(50), not null), content(Text, not null), knowledge_references(JSONB, default='[]'), is_completed(Boolean, default=False)。
+# TODO(M4)：定义索引 idx_messages_session(session_id)。
+# TODO(M4)：定义 relationship('Session', back_populates='messages')。

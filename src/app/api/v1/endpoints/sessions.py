@@ -11,4 +11,4 @@ router = APIRouter()
 # TODO(M4)：实现 PUT /{id} 更新会话端点。接收可选的 title，调用 SessionService.update()。
 # TODO(M4)：实现 DELETE /{id} 删除会话端点。调用 SessionService.delete()，级联删除关联消息。
 # TODO(M4)：实现 POST /{session_id}/stop 停止会话端点。向 StreamManager 发送 stop 事件，中断正在进行的流式生成。
-# TODO(M4)：实现 GET /continue-stream/{session_id} 续流端点。恢复已断开的 SSE 连接，从 offset 参数处回放未读事件并继续推送增量。
+# TODO(M4)：实现 GET /continue-stream/{session_id} 续流端点。从请求 Header 读取 Last-Event-ID（SSE 标准，浏览器断线重连自动携带），调用 StreamManager.get_events_after(after_event_id) 回放断点之后的事件并继续推送增量。对齐 mvp.md §4.2.4 API 定义。

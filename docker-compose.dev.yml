@@ -1,57 +1,10 @@
-# 文件职责：维护服务编排清单，约束依赖服务启动关系与端口映射。
-# 边界：只定义服务编排参数；上游由 docker compose 读取，下游启动容器，不包含应用业务逻辑。
-# TODO：
-# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：执行 `docker compose config` 并通过配置渲染校验；归属模块：`docker-compose.dev.yml`。
+# 文件职责：定义本地开发环境 Docker Compose 编排，仅启动外部依赖服务（postgres/redis，可选 neo4j/minio），应用本身由 `scripts/dev.sh backend` 在宿主机运行以支持热更新。
+# 边界：仅定义开发依赖容器；不包含 app/ui 服务（开发时在宿主机运行）；通过 profiles 控制可选服务的启停。
 
-services:
-  postgres:
-    image: paradedb/paradedb:latest
-    container_name: webot-postgres-dev
-    environment:
-      POSTGRES_USER: webot
-      POSTGRES_PASSWORD: webot
-      POSTGRES_DB: webot
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+# TODO(M1)：定义 postgres 服务。镜像 paradedb/paradedb:latest，环境变量 POSTGRES_USER/PASSWORD/DB=webot，端口 5432:5432，持久化卷 postgres_data_dev。
+# TODO(M1)：定义 redis 服务。镜像 redis:7-alpine，端口 6379:6379，持久化卷 redis_data_dev。
+# TODO(M7)：定义 neo4j 服务。profiles=["full"]，镜像 neo4j:5，环境变量 NEO4J_AUTH，端口 7474 + 7687，持久化卷 neo4j_data_dev。
+# TODO(M5)：定义 minio 服务。profiles=["full"]，镜像 minio/minio:latest，端口 9000 + 9001，持久化卷 minio_data_dev。
+# TODO(M1)：定义 volumes 段。声明 postgres_data_dev / redis_data_dev / neo4j_data_dev / minio_data_dev。
 
-  redis:
-    image: redis:7-alpine
-    container_name: webot-redis-dev
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data_dev:/data
 
-  neo4j:
-    image: neo4j:5
-    container_name: webot-neo4j-dev
-    profiles: ["full"]
-    environment:
-      NEO4J_AUTH: neo4j/password
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - neo4j_data_dev:/data
-
-  minio:
-    image: minio/minio:latest
-    container_name: webot-minio-dev
-    profiles: ["full"]
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data_dev:/data
-
-volumes:
-  postgres_data_dev:
-  redis_data_dev:
-  neo4j_data_dev:
-  minio_data_dev:

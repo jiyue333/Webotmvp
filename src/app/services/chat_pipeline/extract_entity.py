@@ -1,7 +1,6 @@
-"""
-文件职责：承载 chat pipeline 的 `extract_entity` 步骤职责，明确该步骤输入输出契约。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [chat][P1][todo] 完成条件：补齐对话请求与流式响应编排；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/chat_pipeline/extract_entity.py`。
-"""
+# 文件职责：实现 ExtractEntity 插件，调用 LLM 从用户查询中抽取命名实体，供图谱检索使用。
+# 边界：仅负责实体抽取，不执行图谱检索。抽取结果写入 ChatManage.entity。若图谱未启用则跳过。
+# 对标：WeKnora extract_entity.go（PluginExtractEntity.OnEvent -> LLM 提取实体 -> 写入 ChatManage.Entity）。
 
+# TODO(M7): 实现 PluginExtractEntity 类。注册 EXTRACT_ENTITY 事件，通过 LLM 抽取实体列表。
+# TODO(M7): 检查 NEO4J_ENABLE 和 KB 级别的 extract_config 开关，未启用时直接 next()。

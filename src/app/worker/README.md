@@ -1,23 +1,75 @@
 # worker/
 
-## 文件职责
-- 承载 worker 子模块 `README.md` 的任务消费与处理职责。
+## 模块职责
+异步任务消费层。通过 Redis Stream 消费者组拉取文档处理任务，调度 docparser + services 完成解析 → 分块 → 向量化 → 图谱抽取 → 状态回写的全流程。对标 WeKnora 的 Asynq Server + ProcessDocument 语义，替换为 Python + Redis Stream 实现。
 
 ## 边界
-- 只处理异步任务消费与状态回写；上游来自队列，下游调用 service/repository，不提供对外 HTTP 接口。
+- **上游**：`services/knowledge_service.py` 在创建 knowledge 记录后通过 `queue.enqueue()` 投递任务。
+- **下游**：调用 `docparser` 模块解析文档，调用 `services` 层完成分块/向量化/图谱抽取，调用 `repositories` 层写入数据库。
+- **不做**：不对外暴露 HTTP 接口；不包含 API 路由或 Handler 逻辑。
+- **不做**：不管理 Redis 连接（由 `infra/` 层提供连接实例）。
 
-## TODO
-- [worker][P2][todo] 完成条件：补齐队列消费、重试与状态更新机制；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
-- [obs][P2][todo] 完成条件：补齐日志、指标、追踪最小采集口径；验证方式：完成文档评审并与目录结构、接口现状对齐；归属模块：`src/app/worker/README.md`。
+## 文件清单
 
+| 文件                  | 职责                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `__init__.py`         | 包入口；统一导出 IngestionWorker、TaskQueue 等核心符号                                                         |
+| `ingestion_worker.py` | 任务消费主循环（IngestionWorker 类）；从 Stream 拉取任务、路由到处理函数、ack 确认与 reclaim 崩溃恢复          |
+| `queue.py`            | Redis Stream 队列封装（TaskQueue 类）；enqueue 接收 TaskEnvelope，dequeue 返回 ReceivedMessage                 |
+| `tasks.py`            | TaskEnvelope 结构化信封 + TaskType 常量 + Payload 数据类；task_id 仅为 UUIDv7 唯一标识，元数据以 JSON 字段承载 |
 
-## 协作矩阵
-| 协作单元 | 输入依赖 | 输出产物 | 并行边界 | 主要阻塞点 |
-|---|---|---|---|---|
-| api | router/deps/schema | HTTP 协议与响应 | 可与 ui 并行 | service 契约未稳定 |
-| services | api/worker 调用 | 业务编排结果 | 可与 repository 并行定义接口 | repository 能力缺口 |
-| repositories | services 查询需求 | 持久化访问接口 | 可与 infra 并行 | 数据模型与索引未定 |
-| infra | config/compose | 连接与资源实例 | 可独立推进 | 外部服务参数变化 |
-| worker | queue/service | 异步任务执行结果 | 可与 api 并行 | ingest 链路未齐全 |
-| ui | api 契约 | 页面与交互状态 | 可与后端并行联调 | API 字段不稳定 |
+## 数据结构分层
+
+```
+TaskEnvelope（业务层 — tasks.py 定义）
+├── task_id: str          — UUIDv7 唯一标识
+├── task_type: str        — "document:process"
+├── user_id: str          — 提交任务的用户
+├── created_at: datetime  — 创建时间
+├── retry_count: int      — 当前重试次数
+└── payload: dict         — 具体业务载荷（DocumentProcessPayload）
+
+ReceivedMessage（传输层 — queue.py 定义）
+├── stream_message_id: str  — Redis Stream 分配的 ID，用于 XACK
+└── envelope: TaskEnvelope  — 反序列化后的任务信封
+```
+
+## 数据流（对标 mvp.md §3.2 文档入库流）
+
+```
+KnowledgeService.create_knowledge()
+  │
+  ├─ 同事务：写入 knowledge 记录 (parse_status = pending)
+  │
+  └─ 事务外：TaskQueue.enqueue(TaskEnvelope)
+         │                          ↓ XADD (envelope → JSON)
+         ▼
+  Redis Stream ──► IngestionWorker.run_forever()
+   (消费者组)          │
+                     ├─ dequeue() → XREADGROUP → ReceivedMessage
+                     │                            ├─ .stream_message_id
+                     │                            └─ .envelope.task_type
+                     │
+                     ├─ 按 envelope.task_type 路由到处理函数
+                     │
+                     ├─ 状态更新：parse_status → processing
+                     │
+                     ├─ DocParser：解析 + OCR → 结构化文本块
+                     │
+                     ├─ ChunkService：分块 → chunks 表
+                     │
+                     ├─ EmbeddingClient：向量化 → embeddings 表
+                     │
+                     ├─ (M7) GraphService：实体/关系抽取 → Neo4j
+                     │
+                     ├─ 状态更新：parse_status → completed / failed
+                     │
+                     └─ TaskQueue.ack(stream_message_id) → XACK 确认
+```
+
+## 设计决策
+1. **Redis Stream 消费者组**：使用 XREADGROUP + XACK 实现可靠消费。Worker 崩溃后，未 ack 的消息留在 pending 列表，其他 Worker 通过 XCLAIM 自动回收，不丢任务。
+2. **支持水平扩展**：同一消费者组内的多个 Worker 实例自动分配消息，互不重复消费。MVP 阶段默认单 Worker，但架构支持 `docker compose up --scale worker=N`。
+3. **补偿模式保底**：knowledge 创建与 Redis 投递不在同一事务内。除了 Stream pending 回收外，Worker 仍可定期扫描 `parse_status = 'pending'` 超时记录作为兜底补偿（对齐 mvp.md §4.6）。
+4. **任务类型路由**：参考 WeKnora `RunAsynqServer()` 的 `mux.HandleFunc(type, handler)` 模式，在 `ingestion_worker.py` 中按 `envelope.task_type` 路由到对应的 service 方法。
+5. **结构化信封替代字符串拼接**：task_id 为纯 UUIDv7，所有元数据（task_type / user_id / retry_count）以 TaskEnvelope JSON 字段承载，避免分隔符解析的隐性 bug。

@@ -1,7 +1,4 @@
-"""
-文件职责：承载 `request_id` 请求链路中间件职责，控制横切能力注入顺序。
-边界：只处理横切关注点；上游由应用入口注册，下游传递给后续中间件或路由，不执行业务领域逻辑。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/middleware/request_id.py`。
-"""
+# 文件职责：实现请求 ID 中间件，为每个 HTTP 请求生成或提取唯一 request_id，注入 request.state 和响应 header。对齐 WeKnora internal/middleware/logger.go 的 RequestID() 中间件。
+# 边界：只负责 request_id 的生成与传播；不生成 trace_id（由 trace.py 负责），下游中间件和 handler 通过 request.state.request_id 获取。
 
+# TODO(M1)：实现 RequestIDMiddleware。优先从 X-Request-ID header 提取，不存在则生成 uuid4。写入 request.state.request_id 并在响应 header 回传 X-Request-ID。

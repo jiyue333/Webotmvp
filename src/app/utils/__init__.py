@@ -1,7 +1,4 @@
-"""
-文件职责：提供 `__init__` 通用工具函数，避免业务层重复实现。
-边界：只提供可复用工具函数；上游任意模块可调用，下游不依赖业务层对象。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/utils/__init__.py`。
-"""
+# 文件职责：utils 包入口；统一导出通用工具函数，供各层模块按需 import。
+# 边界：仅控制包级导出边界；不实现业务逻辑，不依赖 service / repository 层对象。
 
+# TODO(M2)：按需导出 json / sanitize / file_size 等工具模块的核心函数。

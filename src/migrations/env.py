@@ -1,53 +1,8 @@
-"""
-文件职责：维护数据库迁移配置与版本入口，约束迁移执行边界。
-边界：只描述迁移配置或版本变更；上游由 alembic 调用，下游作用于数据库 schema，不处理业务请求。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/migrations/env.py`。
-"""
+# 文件职责：Alembic 迁移环境配置，负责读取 SQLAlchemy metadata、注入数据库连接 URL，驱动 online/offline 两种迁移模式。
+# 边界：只负责迁移环境初始化与 migration context 配置；数据库连接 URL 从 AppSettings 获取，不硬编码；不包含具体的表定义（由 ORM model 层维护）。
 
-from logging.config import fileConfig
-from alembic import context
-from sqlalchemy import engine_from_config, pool
-
-config = context.config
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
-
-target_metadata = None
-
-
-def run_migrations_offline() -> None:
-    """执行 `run_migrations_offline` 逻辑。
-
-    输入：按函数签名参数接收。
-    输出：返回当前函数声明对应的数据结果。
-    副作用：可能读取或更新进程内状态与外部依赖。
-    """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
-    with context.begin_transaction():
-        context.run_migrations()
-
-
-def run_migrations_online() -> None:
-    """执行 `run_migrations_online` 逻辑。
-
-    输入：按函数签名参数接收。
-    输出：返回当前函数声明对应的数据结果。
-    副作用：可能读取或更新进程内状态与外部依赖。
-    """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
-        with context.begin_transaction():
-            context.run_migrations()
-
-
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+# TODO(M1)：从 alembic.ini 读取日志配置并初始化。调用 fileConfig(config.config_file_name)。
+# TODO(M1)：导入 app.infra.database 中的 Base.metadata，赋值给 target_metadata，使 autogenerate 能感知所有 ORM 模型。
+# TODO(M1)：实现 run_migrations_offline() 函数。调用 context.configure(url=..., target_metadata=..., literal_binds=True)，用于生成纯 SQL 脚本而不连接数据库。
+# TODO(M1)：实现 run_migrations_online() 函数。从 AppSettings 获取 DATABASE_URL，创建 Engine，调用 context.configure(connection=..., target_metadata=...)，在 context.begin_transaction() 内执行 context.run_migrations()。
+# TODO(M1)：在模块末尾根据 context.is_offline_mode() 分支调用 offline 或 online 函数。

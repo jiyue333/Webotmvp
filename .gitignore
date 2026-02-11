@@ -1,7 +1,13 @@
 # 文件职责：维护忽略规则，控制构建上下文与仓库追踪范围。
 # 边界：只维护忽略规则；上游供 git/docker 读取，下游不影响运行时业务行为。
-# TODO：
-# - [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行对应模块回归检查并通过；归属模块：`.gitignore`。
+# TODO(M1)：补充忽略规则。包括：
+#   敏感文件：.env / !.env.example / *.pem / *_key / *_secret / *.key / *.crt
+#   IDE：.idea/ / .vscode/ / *.swp / *.swo
+#   Python：.venv/ / __pycache__/ / *.pyc / *.pyo / *.egg-info/ / dist/ / build/
+#   Node：node_modules/ / ui/.vite
+#   运行时产物：logs/ / tmp/ / *.log / *.pid
+#   系统文件：.DS_Store / Thumbs.db
+#   项目特定：data/files/ / .ace-tool/ / design.pen
 
 .env
 # 但不忽略示例文件

@@ -11,13 +11,14 @@
 
 ## 文件清单
 
-| 文件             | 职责                                                                 | 主要阶段 |
-| ---------------- | -------------------------------------------------------------------- | -------- |
-| `__init__.py`    | 包入口；统一导出公共符号                                             | M2       |
-| `config.py`      | 应用配置（Pydantic Settings），从环境变量 / .env 加载                | M2       |
-| `constants.py`   | 全局常量（分页默认值、文件大小限制、parse_status 枚举字符串等）      | M2       |
-| `error_codes.py` | 业务错误码枚举，按域划分号段（auth/model/kb/knowledge/session/…）    | M2       |
-| `exceptions.py`  | 业务异常基类 `AppError` 及常用子类，由 service 层抛出、api 层捕获    | M2       |
-| `response.py`    | 统一响应壳 `ApiResponse[T]` 与分页壳 `PaginatedResponse[T]`          | M2       |
-| `logger.py`      | 日志配置与 logger 实例工厂（对齐 WeKnora internal/logger/logger.go） | M2       |
-| `security.py`    | 安全工具：密码哈希（bcrypt）、JWT 生成/验证、敏感字段脱敏            | M2       |
+| 文件               | 职责                                                                    | 主要阶段 |
+| ------------------ | ----------------------------------------------------------------------- | -------- |
+| `__init__.py`      | 包入口；统一导出公共符号                                                | M2       |
+| `config.py`        | 应用配置（Pydantic Settings），从环境变量 / .env 加载                   | M2       |
+| `constants.py`     | 全局常量（分页默认值、文件大小限制、parse_status 枚举字符串等）         | M2       |
+| `error_codes.py`   | 业务错误码枚举，按域划分号段（auth/model/kb/knowledge/session/…）       | M2       |
+| `error_handler.py` | 全局异常处理器注册（app.add_exception_handler），异常到 HTTP 响应的映射 | M2       |
+| `exceptions.py`    | 业务异常基类 `AppError` 及常用子类，由 service 层抛出、api 层捕获       | M2       |
+| `response.py`      | 统一响应壳 `ApiResponse[T]` 与分页壳 `PaginatedResponse[T]`             | M2       |
+| `logger.py`        | 日志配置与 logger 实例工厂（对齐 WeKnora internal/logger/logger.go）    | M2       |
+| `security.py`      | 安全工具：密码哈希（bcrypt）、JWT 生成/验证、敏感字段脱敏               | M2       |

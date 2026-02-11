@@ -1,7 +1,6 @@
-"""
-文件职责：定义 `knowledge_tag` 领域 DTO 与校验结构，约束接口输入输出类型。
-边界：只描述本文件边界与上下游关系；不在此实现跨阶段业务闭环。
-TODO：
-- [knowledge][P1][todo] 完成条件：补齐知识条目管理与状态流转约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/schemas/knowledge_tag.py`。
-"""
+# 文件职责：定义知识标签相关 DTO（创建/更新/详情），约束 /knowledge-bases/{id}/tags/* 端点的请求与响应类型。对齐 mvp.md §4.2.4。
+# 边界：只定义数据结构与校验规则；标签唯一性验证由 Service 层负责。
 
+# TODO(M3)：定义 TagCreate(BaseModel)，字段 name: str, color: str | None, sort_order: int = 0。
+# TODO(M3)：定义 TagUpdate(BaseModel)，所有字段可选。
+# TODO(M3)：定义 TagDetail(BaseModel)，包含 id / knowledge_base_id / name / color / sort_order / created_at / updated_at。

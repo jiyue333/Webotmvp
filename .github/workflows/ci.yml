@@ -1,43 +1,99 @@
-# 文件职责：维护 CI 流水线定义，约束构建与测试门禁。
-# 边界：只定义 CI 流水线；上游由 GitHub Actions 触发，下游执行构建测试，不承载业务代码。
-# TODO：
-# - [ops][P2][todo] 完成条件：补齐运行脚本与部署配置检查项；验证方式：在 CI 中执行后端测试与前端构建并通过；归属模块：`.github/workflows/ci.yml`。
+# 文件职责：定义 GitHub Actions CI 流水线，在 push/PR 时自动执行代码质量检查（ruff + mypy）、后端单元测试（pytest）、前端构建校验（npm run build）。对齐 mvp.md §5.4 CI 最小集。
+# 边界：仅定义 CI 步骤与触发条件；不负责部署或发布；测试数据库由 CI service container 提供，不依赖外部环境。
 
+# TODO(M1)：补充 name 和 on 触发条件。name: CI，on: push(main) + pull_request(main)。
 name: CI
 
 on:
   push:
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
-  backend:
+  # TODO(M1)：补充 backend-lint job。步骤：checkout → setup-python 3.11 → pip install ruff mypy → ruff check src/ → mypy src/。
+  backend-lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install backend deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi "uvicorn[standard]" sqlalchemy alembic pydantic pytest
-      - name: Run tests
-        run: pytest -q
+          pip install ruff mypy
+      - name: Lint with Ruff
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          ruff check src/ --select E9,F63,F7,F82 --target-version=py311
+          # exit-zero treats all errors as warnings.
+          ruff check src/ --exit-zero
+      - name: Type check with mypy
+        run: mypy src/
 
-  ui:
+  # TODO(M1)：补充 backend-test job。步骤：checkout → setup-python 3.11 → pip install -e ".[dev]" → pytest --cov=app。Service container 需要 PostgreSQL（ParadeDB 镜像）和 Redis。
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: paradedb/paradedb:latest
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install the package in editable mode with dev dependencies
+          # pyproject.toml is in src/
+          pip install -e "src/.[dev]"
+      - name: Test with pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          pytest --cov=app
+
+  # TODO(M1)：补充 frontend-build job。步骤：checkout → setup-node 18 → cd ui → npm ci → npm run build。
+  frontend-build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ui
+        working-directory: ./ui
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
-      - name: Install deps
+          node-version: 18
+      - name: Install dependencies
         run: npm ci
       - name: Build
         run: npm run build
+
+# TODO(M8)：补充 alembic-check job。步骤：启动 PostgreSQL service container → pip install deps → alembic upgrade head → alembic downgrade base，验证迁移脚本可正反向执行。
+# TODO(M8)：补充 smoke-test job。步骤：docker compose up -d → 等待健康检查 → 执行 API smoke test（登录→导入→检索→对话）→ docker compose down。

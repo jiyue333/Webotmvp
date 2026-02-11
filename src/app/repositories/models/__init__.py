@@ -1,7 +1,7 @@
-"""
-文件职责：定义 `__init__` 持久化模型结构，约束字段语义与存储映射。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [model][P1][todo] 完成条件：补齐模型提供商与模型 CRUD 最小闭环；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/models/__init__.py`。
-"""
+# 文件职责：models 包入口，统一导出所有 ORM 模型类，方便 Alembic 自动检测和外部 from app.repositories.models import User 式引用。
+# 边界：只负责导出；ORM 模型定义在各自文件中，不在此处定义字段。
 
+# TODO(M2)：导出 Base, User, AuthToken。
+# TODO(M3)：导出 Model, KnowledgeBase, Knowledge, KnowledgeTag。
+# TODO(M4)：导出 Session, Message。
+# TODO(M5)：导出 Chunk, Embedding。

@@ -1,7 +1,7 @@
-"""
-文件职责：维护 `storage_client` 外部依赖连接能力，统一资源初始化与释放。
-边界：只负责外部连接初始化与访问；上游提供给 container/repository 使用，不承载业务状态流转。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/infra/storage_client.py`。
-"""
+# 文件职责：创建并管理对象存储客户端（MinIO 或本地文件系统），提供文件上传/下载/删除的统一接口。对齐 WeKnora 的文件存储能力。
+# 边界：仅负责存储客户端创建与基础文件操作抽象；不处理文件解析（由 docparser/ 负责），不感知业务元数据（由 knowledge service 维护）。
 
+# TODO(M5)：定义 StorageBackend Protocol。声明 upload(path, data) / download(path) / delete(path) / exists(path) 方法签名。
+# TODO(M5)：实现 LocalStorageBackend 类。将文件存储到本地磁盘指定目录，作为开发环境默认方案。
+# TODO(M5)：实现 MinIOStorageBackend 类。使用 miniopy-async 异步客户端上传/下载/删除 MinIO 对象。
+# TODO(M5)：定义 create_storage_client(config) 工厂函数。根据 STORAGE_TYPE 配置选择本地或 MinIO 后端。

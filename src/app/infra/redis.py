@@ -1,7 +1,6 @@
-"""
-文件职责：维护 `redis` 外部依赖连接能力，统一资源初始化与释放。
-边界：只负责外部连接初始化与访问；上游提供给 container/repository 使用，不承载业务状态流转。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/infra/redis.py`。
-"""
+# 文件职责：创建并管理 Redis 异步客户端连接，提供缓存/队列/流式事件存储的 Redis 访问入口。对齐 WeKnora 的 Redis 连接初始化。
+# 边界：仅负责 Redis 客户端创建与连接验证；不实现业务级缓存策略（由 service/stream/worker 层使用），不感知具体 key 结构。
 
+# TODO(M2)：定义 create_redis_client(redis_url) 函数。使用 redis.asyncio.from_url 创建异步 Redis 客户端，配置 decode_responses / max_connections 等参数。
+# TODO(M2)：定义 init_redis(client) 协程。应用启动时 ping 验证 Redis 连接是否正常。
+# TODO(M2)：定义 close_redis(client) 协程。应用关闭时调用 client.aclose() 释放连接。

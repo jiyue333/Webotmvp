@@ -1,7 +1,4 @@
-"""
-文件职责：承载 worker 子模块 `__init__` 的任务消费与处理职责。
-边界：只处理异步任务消费与状态回写；上游来自队列，下游调用 service/repository，不提供对外 HTTP 接口。
-TODO：
-- [worker][P2][todo] 完成条件：补齐队列消费、重试与状态更新机制；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/worker/__init__.py`。
-"""
+# 文件职责：worker 包入口；统一导出 IngestionWorker、TaskQueue 等核心符号，供 main.py 启动 worker 进程使用。
+# 边界：仅控制包级导出边界；不实现任务处理逻辑，不直接依赖 infra 层（由 ingestion_worker 内部注入）。
 
+# TODO(M5)：导出 IngestionWorker / TaskQueue 等核心符号，供 main.py 或独立入口脚本 import 使用。

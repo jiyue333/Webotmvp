@@ -1,7 +1,9 @@
-"""
-文件职责：承载 `message_service` 业务域的服务编排职责，协调上层请求与下层数据访问。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [message][P1][todo] 完成条件：补齐消息加载与持久化约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/message_service.py`。
-"""
+# 文件职责：消息管理服务，负责消息 CRUD、会话消息历史加载（向上翻页 before_id 分页）、assistant 消息内容与完成状态更新。
+# 边界：编排 MessageRepository 完成持久化，消息创建前校验 Session 存在性；不处理 SSE 推送。
+# 对标：WeKnora internal/application/service/message.go（CreateMessage/GetMessage/GetMessagesBySession/UpdateMessage/DeleteMessage）。
 
+# TODO(M4): 实现 MessageService 类骨架。注入 MessageRepository、SessionRepository。
+# TODO(M4): 实现 create_message()。创建消息记录，校验 session_id 有效性。
+# TODO(M4): 实现 load_messages()。按 session_id 加载消息历史，支持 before_id + limit 向上翻页。
+# TODO(M4): 实现 update_message()。更新消息内容和 is_completed 状态（供 ChatService 流式完成后回写）。
+# TODO(M4): 实现 get_recent_messages()。获取最近 N 条消息（供 Pipeline LoadHistory 步骤使用）。

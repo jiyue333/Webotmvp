@@ -1,7 +1,4 @@
-"""
-文件职责：维护 `__init__` 外部依赖连接能力，统一资源初始化与释放。
-边界：只负责外部连接初始化与访问；上游提供给 container/repository 使用，不承载业务状态流转。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/infra/__init__.py`。
-"""
+# 文件职责：infra 包入口；统一导出数据库引擎、Redis 客户端、Neo4j 客户端、存储客户端等基础设施实例，供 container.py 装配使用。
+# 边界：仅控制包级导出边界；不实现连接逻辑（由各子模块负责），不承载业务状态。
 
+# TODO(M2)：导出 get_db_engine / get_redis / get_neo4j_client / get_storage_client 等工厂函数。

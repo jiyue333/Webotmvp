@@ -1,7 +1,8 @@
-"""
-文件职责：承载 `user_service` 业务域的服务编排职责，协调上层请求与下层数据访问。
-边界：只负责业务编排与流程控制；上游由 api/worker 调用，下游依赖 repository/client，不直接处理 HTTP 协议。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/services/user_service.py`。
-"""
+# 文件职责：用户信息管理服务，负责用户 CRUD 与密码修改（不含鉴权逻辑）。
+# 边界：仅操作 users 表的读写，鉴权流程（JWT/token）由 AuthService 负责；不处理 HTTP 请求上下文（当前用户提取由 api/deps.py 的 Depends 注入完成）。
+# 对标：WeKnora internal/application/service/user.go（GetUserByID/GetUserByEmail/UpdateUser/DeleteUser/ChangePassword）。
 
+# TODO(M2): 实现 UserService 类骨架。注入 UserRepository。
+# TODO(M2): 实现 get_user_by_id()。按 user_id 查询用户（api/deps.py 解析 JWT 后传入 user_id 调用此方法）。
+# TODO(M2): 实现 update_user()。更新用户名/邮箱等基本信息。
+# TODO(M2): 实现 change_password()。校验旧密码，bcrypt 哈希新密码后更新。

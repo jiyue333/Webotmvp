@@ -64,7 +64,7 @@
 | 知识图谱     | `extract_entity.go`, `search_entity.go`, `neo4j/repository.go`         | 保留     | 仅 Neo4j，一条图谱实现                             |
 | 会话与消息   | `docs/api/session.md`, `docs/api/message.md`                           | 保留     | 保留 continue-stream / stop 能力                   |
 | SSE 流       | `internal/handler/session/stream.go`, `internal/stream/*`              | 保留     | 使用 Redis StreamManager                           |
-| 异步任务     | `Asynq` 路径（container/router/task）                                  | 保留语义 | Python Worker + Redis Queue                        |
+| 异步任务     | `Asynq` 路径（container/router/task）                                  | 保留语义 | Python Worker + Redis Stream                       |
 | 可观测性     | tracing/logger/middleware                                              | 保留     | 采用 Python OTel/日志栈                            |
 
 ### 2.2 MVP 包含 / 不包含
@@ -159,7 +159,7 @@ flowchart TB
 
         subgraph Async["异步处理"]
             direction LR
-            QUEUE["Redis Queue"]
+            QUEUE["Redis Stream"]
             WORKER["Ingestion Worker"]
         end
     end
@@ -298,7 +298,7 @@ Tag 对象：`{id, knowledge_base_id, name, color, sort_order, created_at, updat
 | DELETE | `/knowledge/{id}`                        | —                           | `{}`                             | 软删除，异步清理 chunks/embeddings             |
 
 Knowledge 对象：`{id, knowledge_base_id, type, title, source, parse_status, enable_status, file_name, file_type, file_size, tag_id, created_at, updated_at}`
-parse_status 枚举：`unprocessed -> processing -> completed / failed`
+parse_status 枚举：`pending -> processing -> completed / failed`
 
 #### 4.2.6 Session（M4）
 
@@ -408,8 +408,17 @@ SSE 事件格式见 §4.3。
 | 1800-1899 | Chat      | 1800 流式生成失败                                                  |
 | 1900-1999 | Search    | 1900 检索失败                                                      |
 
-#### 4.3.4 SSE 事件格式（对齐 WeKnora）
+#### 4.3.4 SSE 事件格式
 
+每个 SSE 消息包含标准 `id:` 行，格式为 `evt_{message_id}_{seq}`。浏览器 EventSource 断线重连时自动携带 `Last-Event-ID` Header，服务端据此从断点续流。
+
+```
+id: evt_msg123_7
+event: message
+data: {"id":"msg_xxx","response_type":"answer","content":"...","done":false,...}
+```
+
+data 字段 JSON 结构：
 ```json
 {
   "id": "msg_xxx",
@@ -544,28 +553,28 @@ chunking_config 默认值：
 
 ##### knowledges
 
-| 字段              | 类型         | 约束     | 默认值            | 说明                                          |
-| ----------------- | ------------ | -------- | ----------------- | --------------------------------------------- |
-| id                | VARCHAR(36)  | PK       | uuid              | 知识 ID                                       |
-| knowledge_base_id | VARCHAR(36)  | NOT NULL | —                 | 所属知识库                                    |
-| type              | VARCHAR(50)  | NOT NULL | —                 | file / url / manual                           |
-| title             | VARCHAR(255) | NOT NULL | —                 | 标题                                          |
-| source            | VARCHAR(128) | NOT NULL | —                 | 来源描述                                      |
-| parse_status      | VARCHAR(50)  | NOT NULL | 'unprocessed'     | unprocessed / processing / completed / failed |
-| enable_status     | VARCHAR(50)  | NOT NULL | 'enabled'         | enabled / disabled                            |
-| file_name         | VARCHAR(255) |          | —                 | 原始文件名                                    |
-| file_type         | VARCHAR(50)  |          | —                 | pdf / docx / md / txt / csv / xlsx            |
-| file_size         | BIGINT       |          | —                 | 文件大小（字节）                              |
-| file_path         | TEXT         |          | —                 | 存储路径（MinIO/本地）                        |
-| file_hash         | VARCHAR(64)  |          | —                 | 文件 SHA-256 哈希（去重用）                   |
-| tag_id            | VARCHAR(36)  |          | —                 | 标签 ID                                       |
-| error_message     | TEXT         |          | —                 | 解析失败原因                                  |
-| metadata          | JSONB        |          | —                 | 扩展元数据                                    |
-| created_by        | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id                                |
-| processed_at      | TIMESTAMPTZ  |          | —                 | 解析完成时间                                  |
-| created_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间                                      |
-| updated_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间                                      |
-| deleted_at        | TIMESTAMPTZ  |          | —                 | 软删除                                        |
+| 字段              | 类型         | 约束     | 默认值            | 说明                                      |
+| ----------------- | ------------ | -------- | ----------------- | ----------------------------------------- |
+| id                | VARCHAR(36)  | PK       | uuid              | 知识 ID                                   |
+| knowledge_base_id | VARCHAR(36)  | NOT NULL | —                 | 所属知识库                                |
+| type              | VARCHAR(50)  | NOT NULL | —                 | file / url / manual                       |
+| title             | VARCHAR(255) | NOT NULL | —                 | 标题                                      |
+| source            | VARCHAR(128) | NOT NULL | —                 | 来源描述                                  |
+| parse_status      | VARCHAR(50)  | NOT NULL | 'pending'         | pending / processing / completed / failed |
+| enable_status     | VARCHAR(50)  | NOT NULL | 'enabled'         | enabled / disabled                        |
+| file_name         | VARCHAR(255) |          | —                 | 原始文件名                                |
+| file_type         | VARCHAR(50)  |          | —                 | pdf / docx / md / txt / csv / xlsx        |
+| file_size         | BIGINT       |          | —                 | 文件大小（字节）                          |
+| file_path         | TEXT         |          | —                 | 存储路径（MinIO/本地）                    |
+| file_hash         | VARCHAR(64)  |          | —                 | 文件 SHA-256 哈希（去重用）               |
+| tag_id            | VARCHAR(36)  |          | —                 | 标签 ID                                   |
+| error_message     | TEXT         |          | —                 | 解析失败原因                              |
+| metadata          | JSONB        |          | —                 | 扩展元数据                                |
+| created_by        | VARCHAR(36)  | NOT NULL | —                 | 创建者 user_id                            |
+| processed_at      | TIMESTAMPTZ  |          | —                 | 解析完成时间                              |
+| created_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 创建时间                                  |
+| updated_at        | TIMESTAMPTZ  |          | CURRENT_TIMESTAMP | 更新时间                                  |
+| deleted_at        | TIMESTAMPTZ  |          | —                 | 软删除                                    |
 
 索引：`idx_knowledges_kb(knowledge_base_id)`, `idx_knowledges_status(parse_status)`
 部分唯一索引：`UNIQUE(knowledge_base_id, file_hash) WHERE deleted_at IS NULL` — 同知识库下未删除记录不允许哈希重复
@@ -660,11 +669,11 @@ chunking_config 默认值：
 
 ### 4.6 数据一致性策略
 - 事务边界：
-  - 创建知识时，先在同一事务内落库 `knowledge` 记录（`parse_status = unprocessed`）。不在事务内投递 Redis。
-  - 后台 Worker 定期扫描 `parse_status = unprocessed` 的记录，投递解析任务并更新状态为 `processing`。投递失败则下次重试（补偿模式）。
+  - 创建知识时，先在同一事务内落库 `knowledge` 记录（`parse_status = pending`）。不在事务内投递 Redis。
+  - 事务外投递 Redis Stream（XADD）。Worker 崩溃时，未 XACK 的消息留在 pending 列表，其他 Worker 通过 XCLAIM 自动回收（主恢复机制）。可选：定期扫描 `parse_status = 'pending'` 超时记录作为兜底补偿。
   - 消息创建（user + assistant 占位）同事务。
 - 最终一致：
-  - 导入任务异步执行，状态机：`unprocessed -> processing -> completed / failed`。
+  - 导入任务异步执行，状态机：`pending -> processing -> completed / failed`。
 - 删除策略：
   - 软删除优先，异步清理 `chunks/embeddings/neo4j` 关联数据。
 - 软删除与唯一约束：
@@ -778,7 +787,7 @@ chunking_config 默认值：
 - 关键任务：
   - 完成 provider 列表与模型 CRUD（保持 provider/type 语义与 WeKnora 对齐）。
   - 完成知识库 CRUD 与知识 `file/url/manual` 入口、列表、详情、更新、删除。
-  - 先完成“元数据与状态骨架”；`parse_status` 统一规范为 `pending/processing/completed/failed`（如有 `unprocessed` 需在迁移时映射）。
+  - 先完成“元数据与状态骨架”；`parse_status` 已全项目统一为 `pending/processing/completed/failed`。
 - 本阶段不做：FAQ、KB copy、批量高级运维接口。
 - Exit Criteria：模型配置、建库、建知识记录可在前端闭环。
 
@@ -794,7 +803,7 @@ chunking_config 默认值：
 #### M5 知识上传与异步入库（ingest 主链路阶段）
 - 对齐来源：`internal/router/task.go`、`internal/application/service/knowledge.go`、`docreader/*`。
 - 关键任务：
-  - 建立 Redis Queue + Worker；消费文档处理任务并维护状态机。
+  - 建立 Redis Stream 消费者组 + Worker；消费文档处理任务并维护状态机（XADD / XREADGROUP / XACK）。
   - 完成解析/OCR/分块/向量化入库，落到 `chunks/embeddings`。
   - 打通失败重试与错误回写，保证任务可观测。
 - 本阶段不做：图谱检索增强（仅可预留抽取接口）。
@@ -847,7 +856,7 @@ M4 + M5 → M6 → M7 → M8
 | ----------------------------------------------------------- | ------------------------------------------------------------ |
 | M1 骨架规划与后续实现不完全匹配                             | 在 M2+ 小步重构，并同步更新 README/TODO                      |
 | 单阶段代码量超预算（>1200 行）                              | 立即拆分 TODO 并顺延，禁止临时扩大阶段范围                   |
-| `parse_status` 历史枚举不一致（`unprocessed` vs `pending`） | 在迁移脚本统一映射，接口层只暴露统一枚举                     |
+| `parse_status` 历史枚举不一致（`unprocessed` vs `pending`） | ✅ 已统一为 `pending`，全项目对齐完成                         |
 | OCR 方案选型耗时                                            | M5 初期允许仅文本解析，OCR 作为同阶段可选增量                |
 | 图谱抽取效果不稳定                                          | M7 必须提供开关与降级路径，默认不阻塞主链路                  |
 | stop/continue 流控边界复杂                                  | 先按 M4 完成事件回放与 offset 轮询，再在 M8 增加回归测试固化 |

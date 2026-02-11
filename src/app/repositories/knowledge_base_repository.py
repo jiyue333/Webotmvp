@@ -1,7 +1,6 @@
-"""
-文件职责：提供 `knowledge_base_repository` 数据访问接口，屏蔽业务层对持久化细节的直接依赖。
-边界：只负责持久化读写与查询封装；上游由 service 调用，下游连接数据库/检索引擎，不实现业务决策。
-TODO：
-- [kb][P1][todo] 完成条件：补齐知识库 CRUD 与归属关系约束；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/repositories/knowledge_base_repository.py`。
-"""
+# 文件职责：封装 knowledge_bases 表的数据访问操作，提供知识库 CRUD、按创建者筛选、分页列表等方法。继承 SoftDeleteRepository。对齐 mvp.md §4.5.2 knowledge_bases 表。
+# 边界：只负责 knowledge_bases 表的持久化读写；级联删除关联知识/标签的逻辑由 KBService 编排。查询自动过滤 deleted_at IS NULL。上游调用者为 KBService。
 
+# TODO(M3)：定义 KnowledgeBaseRepository(SoftDeleteRepository) 类，绑定 KnowledgeBase ORM 模型。
+# TODO(M3)：实现 list_by_user(created_by, page, page_size) 方法。按创建者分页查询知识库列表。
+# TODO(M3)：实现 get_with_stats(kb_id) 方法。查询知识库详情，附带关联的知识条数统计。

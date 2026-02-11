@@ -1,36 +1,8 @@
-"""
-文件职责：维护应用容器与资源生命周期编排，统一依赖实例管理。
-边界：只管理容器与资源生命周期；上游由应用入口调用，下游服务/仓储依赖该容器，不承载业务规则。
-TODO：
-- [arch][P1][todo] 完成条件：形成可执行的分层契约并消除职责重叠；验证方式：执行 `cd src && python -m pytest -q` 并通过相关模块用例；归属模块：`src/app/container.py`。
-"""
+# 文件职责：维护应用依赖容器，管理基础设施资源（DB/Redis/Neo4j）的创建与销毁顺序，对外提供全局容器单例。对齐 WeKnora internal/container/container.go 的 BuildContainer。
+# 边界：只管理资源生命周期编排；各资源的具体初始化由 infra/ 层实现，不包含业务逻辑。
 
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from typing import Any
-
-
-@dataclass
-class AppContainer:
-    """应用依赖容器（M1 最小实现）。"""
-
-    resources: dict[str, Any] = field(default_factory=dict)
-    started: bool = False
-
-    async def startup(self) -> None:
-        """初始化应用级资源。"""
-        self.started = True
-
-    async def shutdown(self) -> None:
-        """释放应用级资源。"""
-        self.resources.clear()
-        self.started = False
-
-
-_container = AppContainer()
-
-
-def get_container_instance() -> AppContainer:
-    """返回全局容器实例。"""
-    return _container
+# TODO(M2)：定义 AppContainer 类，包含 startup() 和 shutdown() 异步方法。
+# TODO(M2)：startup() 中按依赖顺序初始化：get_settings() → create_async_db_engine() → create_redis_client() → init_db() / init_redis() 验证连接。
+# TODO(M2)：shutdown() 中按反向顺序释放：close_redis() → close_db()。
+# TODO(M7)：startup() 中若 NEO4J_ENABLE=true，初始化 Neo4j driver；shutdown() 中释放。
+# TODO(M2)：定义模块级 get_container_instance() 函数，返回全局 AppContainer 单例。
